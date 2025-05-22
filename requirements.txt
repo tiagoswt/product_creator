@@ -1,0 +1,29 @@
+# Core web framework
+streamlit>=1.28.0
+
+# Data processing
+pandas>=2.0.0
+
+# PDF processing
+PyMuPDF>=1.23.0
+
+# Excel file support
+openpyxl>=3.1.0
+xlrd>=2.0.1
+
+# LangChain ecosystem
+langchain-core>=0.1.0
+langchain-community>=0.0.20
+langchain-groq>=0.0.1
+langchain-openai>=0.0.5
+
+# LangSmith for tracing and monitoring
+langsmith>=0.0.87
+
+# Web scraping dependencies (required by WebBaseLoader)
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# Additional utilities that may be needed
+python-dotenv>=1.0.0
