@@ -55,7 +55,8 @@ ENV_LANGSMITH_ENDPOINT = "LANGSMITH_ENDPOINT"
 
 # File upload settings
 PDF_TYPE = "pdf"
-EXCEL_TYPES = ["xlsx", "xls", "csv"]  # Added CSV support
+EXCEL_TYPES = ["xlsx", "xls"]
 
-# PDF preview settings
-PDF_PREVIEW_SCALE = 0.5  # Scale down factor for preview
+# PDF preview settings - Updated for higher resolution
+PDF_PREVIEW_SCALE = 0.7  # Increased from 0.5 for better quality and bigger images
+
