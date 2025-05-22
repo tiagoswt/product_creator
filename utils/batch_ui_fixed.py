@@ -15,7 +15,7 @@ from utils.product_config import (
     migrate_product_configs,
 )
 from processors.pdf_processor import render_pdf_preview
-from processors.excel_processor import process_excel_file, is_csv_file
+from processors.excel_processor import process_excel_file
 from processors.web_processor import extract_website_data
 from processors.text_processor import (
     process_consolidated_data,
@@ -96,7 +96,7 @@ def render_batch_extraction_ui():
     st.markdown(
         """
     This view allows you to create multiple product configurations and extract them all at once.
-    For each product, you can assign specific data sources including PDF pages, Excel/CSV rows, and websites.
+    For each product, you can assign specific data sources including PDF pages, Excel rows, and websites.
     You can also provide custom instructions to guide the LLM for each product.
     """
     )
@@ -218,22 +218,22 @@ def render_batch_extraction_ui():
                         st.success(f"All {total_pages} pages selected")
                     else:
                         # Let's use a grid layout for the checkboxes next to thumbnails
-                        # Divide into pages with 3 thumbnails per row
-                        for page_idx in range(0, total_pages, 3):
-                            # Create a row with 3 columns
-                            cols = st.columns(3)
+                        # Divide into pages with 2 thumbnails per row for bigger images
+                        for page_idx in range(0, total_pages, 2):
+                            # Create a row with 2 columns for bigger images
+                            cols = st.columns(2)
 
-                            # Fill the row with up to 3 thumbnails
-                            for i in range(3):
+                            # Fill the row with up to 2 thumbnails
+                            for i in range(2):
                                 if page_idx + i < total_pages:
                                     with cols[i]:
                                         page_num, img_bytes = pdf_preview[page_idx + i]
 
-                                        # Display the thumbnail
+                                        # Display the bigger thumbnail
                                         st.image(
                                             img_bytes,
                                             caption=f"Page {page_num+1}",
-                                            use_column_width=True,
+                                            width=400,  # Fixed width for bigger images (compatible with older Streamlit)
                                         )
 
                                         # Add checkbox below the thumbnail
@@ -277,8 +277,8 @@ def render_batch_extraction_ui():
         else:
             st.info("Please upload a PDF file to continue")
 
-        # EXCEL/CSV SOURCE - Also outside the form
-        st.write("**Excel/CSV Source**")
+        # EXCEL SOURCE - Also outside the form
+        st.write("**Excel Source**")
 
         # Determine if we need to create a new key for the uploader to reset it
         excel_uploader_key = "batch_excel_uploader"
@@ -301,7 +301,7 @@ def render_batch_extraction_ui():
                 del st.session_state["excel_rows_selected"]
 
         excel_file = st.file_uploader(
-            "Upload Excel or CSV", type=["xlsx", "xls", "csv"], key=excel_uploader_key
+            "Upload Excel", type=["xlsx", "xls"], key=excel_uploader_key
         )
 
         # Initialize selected rows
@@ -309,11 +309,10 @@ def render_batch_extraction_ui():
             st.session_state.excel_rows_selected = []
 
         if excel_file:
-            file_type = "CSV" if is_csv_file(excel_file) else "Excel"
-            st.success(f"{file_type} file uploaded: {excel_file.name}")
+            st.success(f"Excel file uploaded: {excel_file.name}")
 
             try:
-                # Process the Excel/CSV file for preview
+                # Process the Excel file for preview
                 import pandas as pd
 
                 # Only read the raw file if we haven't already or if it's a new file
@@ -323,73 +322,8 @@ def render_batch_extraction_ui():
                     or st.session_state.last_excel_name != excel_file.name
                 ):
 
-                    # Read raw data based on file type with robust parsing
-                    if is_csv_file(excel_file):
-                        # Robust CSV reading for preview
-                        try:
-                            raw_df = pd.read_csv(
-                                excel_file,
-                                header=None,
-                                nrows=10,
-                                sep=None,
-                                engine="python",
-                                encoding="utf-8",
-                                on_bad_lines="skip",
-                                skipinitialspace=True,
-                                quoting=1,
-                            )
-                        except Exception as e:
-                            st.warning(f"Initial CSV parsing failed: {str(e)}")
-                            st.info("Trying alternative CSV parsing methods...")
-
-                            # Try different separators
-                            raw_df = None
-                            for separator in [",", ";", "\t", "|"]:
-                                try:
-                                    excel_file.seek(0)  # Reset file pointer
-                                    raw_df = pd.read_csv(
-                                        excel_file,
-                                        header=None,
-                                        nrows=10,
-                                        sep=separator,
-                                        engine="python",
-                                        encoding="utf-8",
-                                        on_bad_lines="skip",
-                                        skipinitialspace=True,
-                                        quoting=1,
-                                    )
-                                    st.success(
-                                        f"Successfully parsed CSV with '{separator}' separator"
-                                    )
-                                    break
-                                except:
-                                    continue
-
-                            # If all separators fail, try with different encoding
-                            if raw_df is None:
-                                try:
-                                    excel_file.seek(0)
-                                    raw_df = pd.read_csv(
-                                        excel_file,
-                                        header=None,
-                                        nrows=10,
-                                        sep=None,
-                                        engine="python",
-                                        encoding="latin-1",
-                                        on_bad_lines="skip",
-                                        skipinitialspace=True,
-                                    )
-                                    st.success(
-                                        "Successfully parsed CSV with latin-1 encoding"
-                                    )
-                                except Exception as final_e:
-                                    st.error(f"Could not parse CSV file: {final_e}")
-                                    st.info(
-                                        "Please check that your CSV file is properly formatted with consistent delimiters."
-                                    )
-                                    return  # Exit early if we can't parse the file
-                    else:
-                        raw_df = pd.read_excel(excel_file, header=None, nrows=10)
+                    # Read raw data
+                    raw_df = pd.read_excel(excel_file, header=None, nrows=10)
 
                     # Convert all columns to strings
                     for col in raw_df.columns:
@@ -406,7 +340,7 @@ def render_batch_extraction_ui():
                     raw_df = st.session_state.raw_excel_df
 
                 # Show preview of raw data
-                with st.expander(f"Raw {file_type} Preview", expanded=False):
+                with st.expander("Raw Excel Preview", expanded=False):
                     st.dataframe(raw_df)
 
                 # Header row selector with better UI
@@ -423,20 +357,18 @@ def render_batch_extraction_ui():
                 st.session_state.batch_excel_header_row = header_row
 
                 # Process button to apply header and show processed data
-                process_excel_button = st.button(
-                    f"Process {file_type} with Selected Header"
-                )
+                process_excel_button = st.button("Process Excel with Selected Header")
 
-                # Check if we should process the Excel/CSV
+                # Check if we should process the Excel
                 if process_excel_button or "processed_excel_df" in st.session_state:
-                    # Process Excel/CSV with selected header row
+                    # Process Excel with selected header row
                     if (
                         process_excel_button
                         or "header_row_last_used" not in st.session_state
                         or st.session_state.header_row_last_used != header_row
                     ):
                         # Only reprocess if the header row changed or button was clicked
-                        with st.spinner(f"Processing {file_type} file..."):
+                        with st.spinner("Processing Excel file..."):
                             # Reset the file to the beginning
                             excel_file.seek(0)
 
@@ -462,11 +394,11 @@ def render_batch_extraction_ui():
                         processed_df = st.session_state.processed_excel_df
 
                         # Show processed data
-                        st.subheader(f"Processed {file_type} Data")
+                        st.subheader("Processed Excel Data")
                         st.dataframe(processed_df)
 
                         # Row selection
-                        st.write(f"**Select {file_type} Rows:**")
+                        st.write("**Select Excel Rows:**")
 
                         # Get the number of rows
                         num_rows = len(processed_df)
@@ -538,12 +470,12 @@ def render_batch_extraction_ui():
                                 st.warning("No rows selected")
                 else:
                     st.info(
-                        f"Click 'Process {file_type} with Selected Header' to view and select rows"
+                        "Click 'Process Excel with Selected Header' to view and select rows"
                     )
             except Exception as e:
-                st.error(f"Error processing {file_type} file: {str(e)}")
+                st.error(f"Error processing Excel file: {str(e)}")
                 st.info(
-                    f"Please check that your {file_type} file is properly formatted and try again."
+                    "Please check that your Excel file is properly formatted and try again."
                 )
 
         # Now show the form for the rest of the product configuration details
@@ -704,7 +636,7 @@ def render_batch_extraction_ui():
                     st.rerun()
                 else:
                     st.error(
-                        "Please select at least one data source (PDF, Excel/CSV, or Website)."
+                        "Please select at least one data source (PDF, Excel, or Website)."
                     )
 
     with tab2:
@@ -859,7 +791,7 @@ def process_batch_extraction():
                     consolidated_text += f"## PDF SOURCE: {config.pdf_file.name}\n\n"
                     consolidated_text += pdf_text + "\n\n"
 
-            # Process Excel/CSV if selected
+            # Process Excel if selected
             if config.excel_file is not None and config.excel_rows:
                 from processors.excel_processor import extract_excel_data
 
@@ -872,9 +804,8 @@ def process_batch_extraction():
                     header_row=excel_header_row,
                 )
                 if excel_text:
-                    file_type = "CSV" if is_csv_file(config.excel_file) else "EXCEL"
                     consolidated_text += (
-                        f"## {file_type} SOURCE: {config.excel_file.name}\n\n"
+                        f"## EXCEL SOURCE: {config.excel_file.name}\n\n"
                     )
                     consolidated_text += excel_text + "\n\n"
 
