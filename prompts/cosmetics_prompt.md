@@ -17,11 +17,11 @@ Extract the following details in JSON format:
 - purchase_price: The cost price at which the company buys the product (numeric value only), if available.  
 - currency: The currency of the price (EUR, etc.)  
 - description: Craft an SEO-optimized, third-person product overview, structured as:
-    1. **Meta description** (2–3 sentences): must start with `"Brand product_name_EN"`, then a punchy hook highlighting the product’s standout benefits.
+    1. **Meta description** (2–3 sentences): must have but not necesserely on the begining  the `"Brand product_name_EN"`, and a punchy hook highlighting the product’s standout benefits.
     2. **Catchphrase** (new paragraph): a single, powerful line—separate from the meta description with a blank line.
     3. **Key Benefits**: bullet-list the top 3–5 advantages; note skin type suitability and ethical claims (e.g., vegan, cruelty-free,...) if present.
     4. **Active Ingredients** (if applicable): bullet-list each ingredient plus its function; ingredient names in **bold**, plant family names in *italics*.
-    5. **Closing pitch** (≈100 words): must start or prominently include `"Brand product_name_EN"`, followed by a persuasive reason why this belongs in everyone’s beauty routine.
+    5. **Closing pitch** (≈100 words): must have but not necesserely on the begining the `"Brand product_name_EN"`, and a persuasive reason why this belongs in everyone’s beauty routine.
 - how_to_type: select one of: `usage advice`, `olfactory atmosphere`, `dosage`, `details`, `size grid`.  
 - how_to_use: detailed instructions for correct use.  
 - product_type: cosmetic category (e.g., cleanser, serum, cream).  
@@ -60,3 +60,4 @@ Respond ONLY with valid JSON. If a field is missing, set it to `null` or an empt
   "EAN": "",
   "CNP": ""
 }}
+
