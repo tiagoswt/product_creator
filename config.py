@@ -17,10 +17,14 @@ OPENAI_MODELS = [
     "gpt-4o",
 ]
 
-# Default settings
+# Default settings - Changed to GPT-4o and temperature 0.4
 DEFAULT_GROQ_MODEL = "meta-llama/llama-4-maverick-17b-128e-instruct"
 DEFAULT_OPENAI_MODEL = "gpt-4o"
-DEFAULT_TEMPERATURE = 0.2
+DEFAULT_TEMPERATURE = 0.4
+
+# Default provider and model for new configurations
+DEFAULT_PROVIDER = "groq"  # Changed from "groq" to "openai"
+DEFAULT_MODEL = "meta-llama/llama-4-maverick-17b-128e-instruct"  # Set to GPT-4o
 
 # Dedicated model for HScode classification
 HSCODE_MODEL = "deepseek-r1-distill-llama-70b"
@@ -44,6 +48,8 @@ STATE_EXCEL_HEADER_ROW = "excel_header_row"
 STATE_LANGSMITH_ENABLED = "langsmith_enabled"
 STATE_GROQ_API_KEY = "groq_api_key"
 STATE_OPENAI_API_KEY = "openai_api_key"
+STATE_DROPBOX_ACCESS_TOKEN = "dropbox_access_token"
+STATE_DROPBOX_ENABLED = "dropbox_enabled"
 
 # Environment variable names
 ENV_GROQ_API_KEY = "GROQ_API_KEY"
@@ -52,10 +58,20 @@ ENV_LANGSMITH_API_KEY = "LANGSMITH_API_KEY"
 ENV_LANGSMITH_TRACING = "LANGSMITH_TRACING"
 ENV_LANGSMITH_PROJECT = "LANGSMITH_PROJECT"
 ENV_LANGSMITH_ENDPOINT = "LANGSMITH_ENDPOINT"
+ENV_DROPBOX_ACCESS_TOKEN = "DROPBOX_ACCESS_TOKEN"
 
 # File upload settings
 PDF_TYPE = "pdf"
 EXCEL_TYPES = ["xlsx", "xls"]
+
+# PDF preview settings - Updated for higher resolution
+PDF_PREVIEW_SCALE = 0.8  # Increased from 0.5 for better quality and bigger images
+
+# Dropbox settings - Updated to use the new folder
+DROPBOX_BASE_FOLDER = "/Product_AI_Content_Creator"
+DROPBOX_TIMEOUT = 60  # seconds
+DROPBOX_AUTO_ORGANIZE = False  # Changed to False since we're using a single folder
+DROPBOX_ADD_TIMESTAMP = True  # Add timestamp to avoid conflicts
 
 # PDF preview settings - Updated for higher resolution
 PDF_PREVIEW_SCALE = 0.7  # Increased from 0.5 for better quality and bigger images
