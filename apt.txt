@@ -1,0 +1,8 @@
+libmupdf-dev
+libmagic-dev
+libopenblas-dev
+liblapack-dev
+pkg-config
+build-essential
+rustc
+cargo
