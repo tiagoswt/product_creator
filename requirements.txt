@@ -1,5 +1,5 @@
 streamlit==1.32.0
-pandas==2.1.4
+pandas>=2.2.0
 numpy==1.26.3
 PyMuPDF==1.23.19
 Pillow==10.2.0
@@ -18,7 +18,7 @@ python-magic==0.4.27
 nltk==3.8.1
 pydantic>=2.5.0
 faiss-cpu
-tiktoken==0.5.2
+tiktoken>=0.6.0
 python-dotenv
 langsmith
 langchain-openai
