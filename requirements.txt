@@ -1,31 +1,31 @@
-# Core web framework
-streamlit>=1.28.0
-
-# Data processing
-pandas>=2.0.0
-
-# PDF processing
-PyMuPDF>=1.23.0
-
-# Excel file support
-openpyxl>=3.1.0
-xlrd>=2.0.1
-
-# LangChain ecosystem
-langchain-core>=0.1.0
-langchain-community>=0.0.20
-langchain-groq>=0.0.1
-langchain-openai>=0.0.5
-
-# LangSmith for tracing and monitoring
-langsmith>=0.0.87
-
-# Web scraping dependencies (required by WebBaseLoader)
-requests>=2.31.0
-beautifulsoup4>=4.12.0
-lxml>=4.9.0
-
-# Additional utilities that may be needed
-python-dotenv>=1.0.0
-
-pypdf
+streamlit==1.32.0
+pandas==2.1.4
+numpy==1.26.3
+PyMuPDF==1.23.19
+Pillow==10.2.0
+langchain
+langchain-groq
+langchain-community
+openai==1.10.0
+openpyxl==3.1.2
+python-dotenv==1.0.0
+beautifulsoup4==4.12.2
+requests
+PyPDF2==3.0.1
+unstructured>=0.11.2
+unstructured-inference>=0.7.21
+python-magic==0.4.27
+nltk==3.8.1
+pydantic>=2.5.0
+faiss-cpu
+tiktoken==0.5.2
+python-dotenv
+langsmith
+langchain-openai
+firecrawl-py
+playwright
+asyncio
+tqdm
+crewai
+crewai-tools
+dropbox>=12.0.0 
