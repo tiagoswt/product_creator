@@ -1,31 +1,42 @@
-# Core web framework
-streamlit>=1.28.0
-
-# Data processing
+# Core Streamlit and Data Processing
+streamlit>=1.32.0
 pandas>=2.0.0
-Add commentMore actions
-# PDF processing
+numpy>=1.24.0
+
+# PDF Processing
 PyMuPDF>=1.23.0
+PyPDF2>=3.0.0
 
-# Excel file support
+# Image Processing
+Pillow>=10.0.0
+
+# Excel/CSV Processing
 openpyxl>=3.1.0
-xlrd>=2.0.1
 
-# LangChain ecosystem
-langchain-core>=0.1.0
+# LangChain Ecosystem
+langchain>=0.1.0
+langchain-groq>=0.1.0
 langchain-community>=0.0.20
-langchain-groq>=0.0.1
-langchain-openai>=0.0.5
+langchain-openai>=0.1.0
+langsmith>=0.1.0
 
-# LangSmith for tracing and monitoring
-langsmith>=0.0.87
+# OpenAI
+openai>=1.10.0
 
-# Web scraping dependencies (required by WebBaseLoader)
-requests>=2.31.0
-beautifulsoup4>=4.12.0
-lxml>=4.9.0
+# Text Processing and Tokenization
+tiktoken>=0.6.0
+pydantic>=2.5.0
 
-# Additional utilities that may be needed
+# Environment Configuration
 python-dotenv>=1.0.0
 
-pypdf
+# Web Scraping and Requests
+beautifulsoup4>=4.12.0
+requests>=2.31.0
+
+# Optional: Dropbox Integration (comment out if not needed)
+dropbox>=12.0.0
+
+# Optional: Web Loader Dependencies
+lxml>=4.9.0
+html5lib>=1.1
