@@ -23,8 +23,8 @@ DEFAULT_OPENAI_MODEL = "gpt-4o"
 DEFAULT_TEMPERATURE = 0.4
 
 # Default provider and model for new configurations
-DEFAULT_PROVIDER = "groq"  # Changed from "groq" to "openai"
-DEFAULT_MODEL = "meta-llama/llama-4-maverick-17b-128e-instruct"  # Set to GPT-4o
+DEFAULT_PROVIDER = "openai"  # Changed from "groq" to "openai"
+DEFAULT_MODEL = "GPT-4o"  # Set to GPT-4o
 
 # Dedicated model for HScode classification
 HSCODE_MODEL = "deepseek-r1-distill-llama-70b"
