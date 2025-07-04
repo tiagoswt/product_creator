@@ -1,52 +1,46 @@
 """
-Configuration form component for product setup
+Configuration form component for product setup with automatic PDF preview
 """
 
 import streamlit as st
+import pandas as pd  # Added for Excel preview functionality
 import time
 from processors.pdf_processor import render_pdf_preview
 from processors.excel_processor import process_excel_file
 from utils.product_config import ProductConfig, add_product_config
 import config
 
-# Configuration constants
-GROQ_MODELS = [
-    "deepseek-r1-distill-llama-70b",
-    "llama3-70b-8192",
-    "llama3-8b-8192",
-    "meta-llama/llama-4-scout-17b-16e-instruct",
-    "meta-llama/llama-4-maverick-17b-128e-instruct",
-    "llama-3.3-70b-versatile",
-]
-
-OPENAI_MODELS = [
-    "gpt-3.5-turbo",
-    "gpt-4",
-    "gpt-4-turbo",
-    "gpt-4o",
-]
-
-DEFAULT_GROQ_MODEL = "meta-llama/llama-4-maverick-17b-128e-instruct"
-DEFAULT_OPENAI_MODEL = "gpt-4o"
-DEFAULT_TEMPERATURE = 0.4
-
 
 class ConfigurationForm:
-    """Handles the product configuration form"""
+    """Handles the product configuration form with automatic PDF preview"""
 
     def __init__(self):
         self._initialize_data_source_states()
+        # Initialize form counter for dynamic keys
+        if "form_counter" not in st.session_state:
+            st.session_state.form_counter = 0
 
     def _initialize_data_source_states(self):
         """Initialize data source states in session"""
+        # PDF states
         if "current_pdf_file" not in st.session_state:
             st.session_state.current_pdf_file = None
+        if "pdf_selected_pages" not in st.session_state:
+            st.session_state.pdf_selected_pages = set()
+        if "last_pdf_processed" not in st.session_state:
+            st.session_state.last_pdf_processed = None
+
+        # Excel states (updated with new preview states)
         if "current_excel_file" not in st.session_state:
             st.session_state.current_excel_file = None
-        if "pdf_pages_selected" not in st.session_state:
-            st.session_state.pdf_pages_selected = []
         if "excel_rows_selected" not in st.session_state:
             st.session_state.excel_rows_selected = []
+        if "raw_excel_df" not in st.session_state:
+            st.session_state.raw_excel_df = None
+        if "processed_excel_df" not in st.session_state:
+            st.session_state.processed_excel_df = None
+        if "excel_header_row" not in st.session_state:
+            st.session_state.excel_header_row = None
 
     def render(self):
         """Render the complete configuration form"""
@@ -76,21 +70,21 @@ class ConfigurationForm:
                 if cleaned_base_product != base_product.strip():
                     st.caption(f"Will be saved as: {cleaned_base_product}")
 
+        st.markdown("---")
+        st.write("### Data Sources")
+
+        # Website source first (outside form for immediate feedback)
+        website_url = self._render_website_section()
+
+        # PDF source second (outside form for interactive selection)
+        selected_pdf_pages = self._render_pdf_section_with_auto_preview()
+
+        # Excel source third (outside form for immediate feedback)
+        selected_excel_rows = self._render_excel_section()
+
+        # Form only for final submission
+        st.markdown("---")
         with st.form("new_product_config", clear_on_submit=False):
-            st.markdown("---")
-            st.write("### Data Sources")
-
-            # Website source first (full width)
-            website_url = self._render_website_section()
-
-            # PDF source second (full width)
-            selected_pdf_pages = self._render_pdf_section()
-
-            # Excel source third (full width)
-            selected_excel_rows = self._render_excel_section()
-
-            # Submit button
-            st.markdown("---")
             submitted = st.form_submit_button(
                 "Add Product Configuration", type="primary"
             )
@@ -104,171 +98,345 @@ class ConfigurationForm:
                     base_product,
                 )
 
-    def _render_pdf_section(self):
-        """Render PDF upload and selection section"""
+    def _render_pdf_section_with_auto_preview(self):
+        """Render PDF upload section with automatic preview and clickable selection"""
         st.write("**📄 PDF Source**")
 
-        # PDF file uploader
-        form_pdf_key = f"form_pdf_uploader_{int(time.time())}"
+        # PDF file uploader (outside form)
         pdf_file = st.file_uploader(
             "Upload PDF",
             type="pdf",
-            key=form_pdf_key,
             help="Upload a PDF file containing product information",
+            key=f"main_pdf_uploader_{st.session_state.form_counter}",
         )
-
-        # Store PDF file in session state
-        if pdf_file:
-            st.session_state.current_pdf_file = pdf_file
-            st.success(f"PDF uploaded: {pdf_file.name}")
 
         selected_pdf_pages = []
 
-        # PDF page selection
-        if st.session_state.current_pdf_file:
-            if st.form_submit_button("Preview PDF Pages", type="secondary"):
-                with st.spinner("Rendering PDF preview..."):
-                    pdf_preview = render_pdf_preview(st.session_state.current_pdf_file)
-                    st.session_state.pdf_preview = pdf_preview
-                    st.session_state.last_pdf_name = (
-                        st.session_state.current_pdf_file.name
-                    )
-                    st.rerun()
+        # Handle PDF file upload and auto-preview
+        if pdf_file:
+            # Check if this is a new PDF file
+            is_new_pdf = (
+                st.session_state.current_pdf_file is None
+                or st.session_state.current_pdf_file.name != pdf_file.name
+                or st.session_state.last_pdf_processed != pdf_file.name
+            )
 
-            # Show page selection if preview is available
-            if (
-                "pdf_preview" in st.session_state
-                and "last_pdf_name" in st.session_state
-                and st.session_state.current_pdf_file
-                and st.session_state.last_pdf_name
-                == st.session_state.current_pdf_file.name
+            if is_new_pdf:
+                # Reset selection for new PDF
+                st.session_state.pdf_selected_pages = set()
+                st.session_state.current_pdf_file = pdf_file
+                st.session_state.last_pdf_processed = pdf_file.name
+
+                # Auto-generate preview for new PDF
+                with st.spinner("📖 Loading PDF preview..."):
+                    try:
+                        pdf_preview = render_pdf_preview(pdf_file)
+                        st.session_state.pdf_preview = pdf_preview
+                        st.success(
+                            f"✅ PDF loaded: {pdf_file.name} ({len(pdf_preview)} pages)"
+                        )
+                    except Exception as e:
+                        st.error(f"❌ Error loading PDF: {str(e)}")
+                        return []
+            else:
+                # Same PDF, keep existing selection
+                st.session_state.current_pdf_file = pdf_file
+                st.info(f"📄 PDF: {pdf_file.name}")
+
+            # Show thumbnail grid if preview is available
+            if "pdf_preview" in st.session_state and st.session_state.pdf_preview:
+                selected_pdf_pages = self._render_pdf_thumbnail_grid()
+
+        else:
+            # No PDF uploaded
+            if st.session_state.current_pdf_file:
+                st.session_state.current_pdf_file = None
+                st.session_state.pdf_selected_pages = set()
+                if "pdf_preview" in st.session_state:
+                    del st.session_state["pdf_preview"]
+
+        return selected_pdf_pages
+
+    def _render_pdf_thumbnail_grid(self):
+        """Render PDF pages as clickable thumbnail grid"""
+        pdf_preview = st.session_state.pdf_preview
+        total_pages = len(pdf_preview)
+
+        st.write(f"**Select pages from {total_pages} available:**")
+
+        # Quick action buttons (outside form)
+        self._render_pdf_quick_actions(total_pages)
+
+        # Show current selection summary
+        selected_count = len(st.session_state.pdf_selected_pages)
+        if selected_count > 0:
+            selected_list = sorted(st.session_state.pdf_selected_pages)
+            selected_display = ", ".join(str(p + 1) for p in selected_list[:10])
+            if len(selected_list) > 10:
+                selected_display += f" ... (+{len(selected_list) - 10} more)"
+            st.success(f"✅ Selected {selected_count} pages: {selected_display}")
+        else:
+            st.info("👆 Click page thumbnails below to select them")
+
+        # Render thumbnail grid
+        st.write("**Click on page thumbnails to select/deselect:**")
+
+        # Create thumbnail grid (3 columns per row)
+        cols_per_row = 3
+
+        for row_start in range(0, total_pages, cols_per_row):
+            cols = st.columns(cols_per_row)
+
+            for col_idx in range(cols_per_row):
+                page_idx = row_start + col_idx
+
+                if page_idx < total_pages:
+                    with cols[col_idx]:
+                        self._render_pdf_page_thumbnail(page_idx, pdf_preview[page_idx])
+
+        # Return selected pages as list
+        return sorted(list(st.session_state.pdf_selected_pages))
+
+    def _render_pdf_quick_actions(self, total_pages):
+        """Render quick action buttons for PDF page selection"""
+        st.write("**Quick Actions:**")
+        action_col1, action_col2 = st.columns(2)
+
+        with action_col1:
+            if st.button(
+                "📋 Select All",
+                key=f"pdf_select_all_{st.session_state.form_counter}",
+                use_container_width=True,
             ):
-                selected_pdf_pages = self._render_pdf_page_selection()
+                st.session_state.pdf_selected_pages = set(range(total_pages))
+                st.rerun()
+
+        with action_col2:
+            if st.button(
+                "🗑️ Clear All",
+                key=f"pdf_clear_all_{st.session_state.form_counter}",
+                use_container_width=True,
+            ):
+                st.session_state.pdf_selected_pages = set()
+                st.rerun()
+
+    def _render_pdf_page_thumbnail(self, page_idx, page_data):
+        """Render a single PDF page thumbnail with selection button"""
+        page_num = page_idx + 1
+        is_selected = page_idx in st.session_state.pdf_selected_pages
+
+        # Display the page image
+        try:
+            page_image_data = page_data[1]  # (page_number, image_bytes)
+            st.image(page_image_data, caption=f"Page {page_num}", use_column_width=True)
+        except Exception as e:
+            st.error(f"Error loading page {page_num}")
+            return
+
+        # Selection button with visual feedback
+        button_text = "✅ Selected" if is_selected else "📄 Select"
+        button_type = "secondary" if is_selected else "primary"
+
+        if st.button(
+            button_text,
+            key=f"pdf_page_select_{page_idx}_{st.session_state.form_counter}",
+            type=button_type,
+            use_container_width=True,
+        ):
+            # Toggle selection
+            if is_selected:
+                st.session_state.pdf_selected_pages.discard(page_idx)
             else:
-                if st.session_state.current_pdf_file:
-                    st.info("Click 'Preview PDF Pages' to select specific pages")
+                st.session_state.pdf_selected_pages.add(page_idx)
+            st.rerun()
 
-        return selected_pdf_pages
-
-    def _render_pdf_page_selection(self):
-        """Render PDF page selection interface"""
-        total_pages = len(st.session_state.pdf_preview)
-        st.write(f"Select pages from {total_pages} available:")
-
-        # Page range selector
-        page_selection_method = st.radio(
-            "Page selection:",
-            ["Select All", "Page Range", "Individual Pages"],
-            key="pdf_page_method",
-        )
-
-        if page_selection_method == "Select All":
-            selected_pdf_pages = list(range(total_pages))
-            st.success(f"All {total_pages} pages selected")
-        elif page_selection_method == "Page Range":
-            col_start, col_end = st.columns(2)
-            with col_start:
-                start_page = st.number_input(
-                    "Start page", min_value=1, max_value=total_pages, value=1
-                )
-            with col_end:
-                end_page = st.number_input(
-                    "End page",
-                    min_value=start_page,
-                    max_value=total_pages,
-                    value=total_pages,
-                )
-            selected_pdf_pages = list(range(start_page - 1, end_page))
-            st.info(
-                f"Pages {start_page} to {end_page} selected ({len(selected_pdf_pages)} pages)"
-            )
-        else:  # Individual Pages
-            selected_pages_input = st.text_input(
-                "Enter page numbers (comma-separated, e.g., 1,3,5):",
-                placeholder="1,2,3",
-            )
-            if selected_pages_input:
-                try:
-                    page_numbers = [
-                        int(p.strip()) for p in selected_pages_input.split(",")
-                    ]
-                    selected_pdf_pages = [
-                        p - 1 for p in page_numbers if 1 <= p <= total_pages
-                    ]
-                    st.success(
-                        f"Selected {len(selected_pdf_pages)} pages: {', '.join(str(p+1) for p in selected_pdf_pages)}"
-                    )
-                except ValueError:
-                    selected_pdf_pages = []
-                    st.error(
-                        "Invalid page numbers. Please use comma-separated numbers."
-                    )
-            else:
-                selected_pdf_pages = []
-
-        return selected_pdf_pages
+        # Visual indicator
+        if is_selected:
+            st.success("✅ Selected")
+        else:
+            st.caption("Click to select")
 
     def _render_excel_section(self):
-        """Render Excel/CSV upload and selection section"""
+        """Render Excel/CSV upload and selection section with preview before header selection"""
         st.write("**📊 Excel/CSV Source**")
 
-        # Excel file uploader
-        form_excel_key = f"form_excel_uploader_{int(time.time())}"
+        # Excel file uploader (outside form)
         excel_file = st.file_uploader(
             "Upload Excel/CSV",
             type=["xlsx", "xls", "csv"],
-            key=form_excel_key,
             help="Upload an Excel or CSV file containing product information",
+            key=f"main_excel_uploader_{st.session_state.form_counter}",
         )
-
-        # Store Excel file in session state
-        if excel_file:
-            st.session_state.current_excel_file = excel_file
-            st.success(f"File uploaded: {excel_file.name}")
 
         selected_excel_rows = []
 
-        # Excel processing
-        if st.session_state.current_excel_file:
-            # Header row selection
-            header_row = st.number_input(
-                "Header row (0-based index):",
-                min_value=0,
-                max_value=50,
-                value=0,
-                help="Which row contains the column headers",
+        # Handle Excel file upload
+        if excel_file:
+            # Check if this is a new file
+            is_new_file = (
+                st.session_state.current_excel_file is None
+                or st.session_state.current_excel_file.name != excel_file.name
             )
 
-            if st.form_submit_button("Preview Excel Data", type="secondary"):
-                with st.spinner("Processing Excel file..."):
-                    try:
-                        st.session_state.current_excel_file.seek(0)
-                        processed_df = process_excel_file(
-                            st.session_state.current_excel_file, header=header_row
-                        )
-                        if processed_df is not None:
-                            st.session_state.processed_excel_df = processed_df
-                            st.session_state.excel_header_row = header_row
-                            st.rerun()
-                    except Exception as e:
-                        st.error(f"Error processing Excel: {str(e)}")
+            if is_new_file:
+                # Reset states for new file
+                st.session_state.current_excel_file = excel_file
+                if "raw_excel_df" in st.session_state:
+                    del st.session_state["raw_excel_df"]
+                if "processed_excel_df" in st.session_state:
+                    del st.session_state["processed_excel_df"]
+                if "excel_header_row" in st.session_state:
+                    del st.session_state["excel_header_row"]
 
-            # Show row selection if data is processed
+                # Auto-load raw preview for new file
+                with st.spinner("📊 Loading file preview..."):
+                    try:
+                        # Load raw data without headers for preview
+                        excel_file.seek(0)
+                        raw_df = process_excel_file(
+                            excel_file, header=None, nrows=20
+                        )  # Load first 20 rows
+                        if raw_df is not None:
+                            st.session_state.raw_excel_df = raw_df
+                            st.success(f"✅ File loaded: {excel_file.name}")
+                        else:
+                            st.error(
+                                "❌ Error loading file. Please check the file format."
+                            )
+                            return []
+                    except Exception as e:
+                        st.error(f"❌ Error loading file: {str(e)}")
+                        return []
+            else:
+                st.session_state.current_excel_file = excel_file
+                st.info(f"📊 File: {excel_file.name}")
+
+            # Show raw preview if available
             if (
-                "processed_excel_df" in st.session_state
-                and st.session_state.current_excel_file
+                "raw_excel_df" in st.session_state
+                and st.session_state.raw_excel_df is not None
             ):
-                selected_excel_rows = self._render_excel_row_selection()
+                # Show raw data preview
+                st.write("**📋 File Preview (first 20 rows):**")
+
+                # Display the raw data with row numbers
+                preview_df = st.session_state.raw_excel_df.copy()
+                preview_df.index.name = "Row"
+
+                # Show the dataframe with row indices
+                st.dataframe(preview_df, use_container_width=True, height=300)
+
+                # Header row selection based on preview
+                total_rows = len(preview_df)
+                st.write("**🏷️ Select Header Row:**")
+
+                header_row = st.selectbox(
+                    "Which row contains the column headers?",
+                    options=list(range(total_rows)),
+                    index=0,
+                    format_func=lambda x: f"Row {x} - {self._format_row_preview(preview_df.iloc[x])}",
+                    help="Select the row that contains your column headers",
+                    key=f"excel_header_row_selector_{st.session_state.form_counter}",
+                )
+
+                # Show selected header row highlight
+                if header_row is not None:
+                    st.write(f"**Selected header row {header_row}:**")
+                    header_preview = preview_df.iloc[header_row : header_row + 1]
+                    st.dataframe(
+                        header_preview, use_container_width=True, hide_index=False
+                    )
+
+                # Process data with selected header row
+                if st.button(
+                    "✅ Apply Header Row",
+                    type="primary",
+                    key=f"apply_header_row_{st.session_state.form_counter}",
+                ):
+                    with st.spinner("Processing Excel file with selected headers..."):
+                        try:
+                            st.session_state.current_excel_file.seek(0)
+                            processed_df = process_excel_file(
+                                st.session_state.current_excel_file, header=header_row
+                            )
+                            if processed_df is not None and not processed_df.empty:
+                                st.session_state.processed_excel_df = processed_df
+                                st.session_state.excel_header_row = header_row
+                                st.success(
+                                    f"✅ Data processed with row {header_row} as headers"
+                                )
+                                st.rerun()
+                            else:
+                                st.error(
+                                    "❌ Error processing file with selected headers. The result is empty."
+                                )
+                                # Clear the processed data
+                                if "processed_excel_df" in st.session_state:
+                                    del st.session_state["processed_excel_df"]
+                        except Exception as e:
+                            st.error(f"❌ Error processing Excel: {str(e)}")
+                            # Clear the processed data on error
+                            if "processed_excel_df" in st.session_state:
+                                del st.session_state["processed_excel_df"]
+
+                # Show row selection if data is processed with headers
+                if (
+                    "processed_excel_df" in st.session_state
+                    and st.session_state.processed_excel_df is not None
+                    and not st.session_state.processed_excel_df.empty
+                    and st.session_state.current_excel_file
+                    and st.session_state.get("excel_header_row") == header_row
+                ):
+                    st.markdown("---")
+                    st.write("**📋 Processed Data with Headers:**")
+
+                    try:
+                        # Show processed data preview with additional safety checks
+                        processed_preview = st.session_state.processed_excel_df.head(10)
+                        st.dataframe(processed_preview, use_container_width=True)
+
+                        selected_excel_rows = self._render_excel_row_selection()
+                    except Exception as e:
+                        st.error(f"❌ Error displaying processed data: {str(e)}")
+                        # Clear the problematic processed data
+                        if "processed_excel_df" in st.session_state:
+                            del st.session_state["processed_excel_df"]
+                        selected_excel_rows = []
+
             else:
                 if st.session_state.current_excel_file:
-                    st.info("Click 'Preview Excel Data' to select specific rows")
+                    st.error("Unable to preview file. Please try uploading again.")
+
+        else:
+            # No Excel uploaded - clear all related session state
+            if st.session_state.current_excel_file:
+                st.session_state.current_excel_file = None
+                if "raw_excel_df" in st.session_state:
+                    del st.session_state["raw_excel_df"]
+                if "processed_excel_df" in st.session_state:
+                    del st.session_state["processed_excel_df"]
+                if "excel_header_row" in st.session_state:
+                    del st.session_state["excel_header_row"]
 
         return selected_excel_rows
 
     def _render_excel_row_selection(self):
-        """Render Excel row selection interface"""
+        """Render Excel row selection interface with additional safety checks"""
+        # Add safety check for processed_excel_df
+        if (
+            "processed_excel_df" not in st.session_state
+            or st.session_state.processed_excel_df is None
+            or st.session_state.processed_excel_df.empty
+        ):
+            st.error("❌ No processed Excel data available. Please reprocess the file.")
+            return []
+
         processed_df = st.session_state.processed_excel_df
         num_rows = len(processed_df)
+
+        if num_rows == 0:
+            st.warning("⚠️ No data rows available after header processing.")
+            return []
 
         st.write(f"Select rows from {num_rows} available:")
 
@@ -276,49 +444,86 @@ class ConfigurationForm:
         row_selection_method = st.radio(
             "Row selection:",
             ["Select All", "Row Range", "Individual Rows"],
-            key="excel_row_method",
+            key=f"excel_row_method_{st.session_state.form_counter}",
         )
 
-        if row_selection_method == "Select All":
-            selected_excel_rows = list(range(num_rows))
-            st.success(f"All {num_rows} rows selected")
-        elif row_selection_method == "Row Range":
-            col_start, col_end = st.columns(2)
-            with col_start:
-                start_row = st.number_input(
-                    "Start row", min_value=0, max_value=num_rows - 1, value=0
-                )
-            with col_end:
-                end_row = st.number_input(
-                    "End row",
-                    min_value=start_row,
-                    max_value=num_rows - 1,
-                    value=min(4, num_rows - 1),
-                )
-            selected_excel_rows = list(range(start_row, end_row + 1))
-            st.info(
-                f"Rows {start_row} to {end_row} selected ({len(selected_excel_rows)} rows)"
-            )
-        else:  # Individual Rows
-            selected_rows_input = st.text_input(
-                "Enter row numbers (comma-separated, e.g., 0,2,4):", placeholder="0,1,2"
-            )
-            if selected_rows_input:
-                try:
-                    row_numbers = [
-                        int(r.strip()) for r in selected_rows_input.split(",")
-                    ]
-                    selected_excel_rows = [r for r in row_numbers if 0 <= r < num_rows]
-                    st.success(
-                        f"Selected {len(selected_excel_rows)} rows: {', '.join(str(r) for r in selected_excel_rows)}"
+        try:
+            if row_selection_method == "Select All":
+                selected_excel_rows = list(range(num_rows))
+                st.success(f"All {num_rows} rows selected")
+            elif row_selection_method == "Row Range":
+                col_start, col_end = st.columns(2)
+                with col_start:
+                    start_row = st.number_input(
+                        "Start row",
+                        min_value=0,
+                        max_value=num_rows - 1,
+                        value=0,
+                        key=f"excel_start_row_{st.session_state.form_counter}",
                     )
-                except ValueError:
+                with col_end:
+                    end_row = st.number_input(
+                        "End row",
+                        min_value=start_row,
+                        max_value=num_rows - 1,
+                        value=min(4, num_rows - 1),
+                        key=f"excel_end_row_{st.session_state.form_counter}",
+                    )
+                selected_excel_rows = list(range(start_row, end_row + 1))
+                st.info(
+                    f"Rows {start_row} to {end_row} selected ({len(selected_excel_rows)} rows)"
+                )
+            else:  # Individual Rows
+                selected_rows_input = st.text_input(
+                    "Enter row numbers (comma-separated, e.g., 0,2,4):",
+                    placeholder="0,1,2",
+                    key=f"excel_individual_rows_{st.session_state.form_counter}",
+                )
+                if selected_rows_input:
+                    try:
+                        row_numbers = [
+                            int(r.strip()) for r in selected_rows_input.split(",")
+                        ]
+                        selected_excel_rows = [
+                            r for r in row_numbers if 0 <= r < num_rows
+                        ]
+                        if len(selected_excel_rows) != len(row_numbers):
+                            invalid_rows = [
+                                r for r in row_numbers if r < 0 or r >= num_rows
+                            ]
+                            st.warning(f"⚠️ Invalid row numbers ignored: {invalid_rows}")
+                        st.success(
+                            f"Selected {len(selected_excel_rows)} rows: {', '.join(str(r) for r in selected_excel_rows)}"
+                        )
+                    except ValueError:
+                        selected_excel_rows = []
+                        st.error(
+                            "Invalid row numbers. Please use comma-separated numbers."
+                        )
+                else:
                     selected_excel_rows = []
-                    st.error("Invalid row numbers. Please use comma-separated numbers.")
-            else:
-                selected_excel_rows = []
+        except Exception as e:
+            st.error(f"❌ Error in row selection: {str(e)}")
+            selected_excel_rows = []
 
         return selected_excel_rows
+
+    def _format_row_preview(self, row):
+        """Format a row for preview in the header selection dropdown"""
+        try:
+            # Show first 3 non-null values from the row
+            non_null_values = [
+                str(val) for val in row.values if pd.notna(val) and str(val).strip()
+            ]
+            if non_null_values:
+                preview_text = " | ".join(non_null_values[:3])
+                if len(preview_text) > 50:
+                    preview_text = preview_text[:47] + "..."
+                return preview_text
+            else:
+                return "Empty row"
+        except Exception as e:
+            return f"Error reading row: {str(e)}"
 
     def _render_website_section(self):
         """Render website URL input section"""
@@ -327,6 +532,7 @@ class ConfigurationForm:
             "Website URLs",
             placeholder="https://example.com/product-page, https://shop.example.com/item, another-site.com/product",
             help="Enter one or more website URLs containing product information. Separate multiple URLs with commas.",
+            key=f"website_url_input_{st.session_state.form_counter}",
         )
 
         # Show URL preview if user has entered something
@@ -371,11 +577,15 @@ class ConfigurationForm:
             return
 
         # Use default model configuration (hidden from user)
-        model_provider = config.DEFAULT_PROVIDER  # "groq"
-        model_name = (
-            config.DEFAULT_MODEL
-        )  # "meta-llama/llama-4-maverick-17b-128e-instruct"
-        temperature = config.DEFAULT_TEMPERATURE  # 0.4
+        model_provider = config.DEFAULT_PROVIDER  # Now respects config setting
+
+        # Select the correct model based on provider
+        if model_provider == "groq":
+            model_name = config.DEFAULT_GROQ_MODEL
+        else:  # openai
+            model_name = config.DEFAULT_OPENAI_MODEL
+
+        temperature = config.DEFAULT_TEMPERATURE
         custom_instructions = ""  # No custom instructions
 
         # Clean base_product for filename use
@@ -434,13 +644,30 @@ class ConfigurationForm:
 
     def _clear_form_data(self):
         """Clear form data after successful submission"""
+        # Increment form counter to reset all widgets with new keys
+        st.session_state.form_counter += 1
+
+        # Clear internal file tracking
         st.session_state.current_pdf_file = None
         st.session_state.current_excel_file = None
-        st.session_state.pdf_pages_selected = []
+        st.session_state.pdf_selected_pages = set()
         st.session_state.excel_rows_selected = []
+
+        # Clear PDF-related session state
         if "pdf_preview" in st.session_state:
             del st.session_state["pdf_preview"]
+        if "last_pdf_processed" in st.session_state:
+            del st.session_state["last_pdf_processed"]
+
+        # Clear Excel-related session state (including new raw preview data)
+        if "raw_excel_df" in st.session_state:
+            del st.session_state["raw_excel_df"]
         if "processed_excel_df" in st.session_state:
             del st.session_state["processed_excel_df"]
+        if "excel_header_row" in st.session_state:
+            del st.session_state["excel_header_row"]
+        if "excel_header_row_selector" in st.session_state:
+            del st.session_state["excel_header_row_selector"]
+
         # Don't clear product_type_selector and base_product_input
         # so user can easily add multiple products of the same type
