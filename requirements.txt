@@ -6,6 +6,7 @@ numpy>=1.24.0
 # PDF Processing
 PyMuPDF>=1.23.0
 PyPDF2>=3.0.0
+pypdf>=4.0.0
 
 # Image Processing
 Pillow>=10.0.0
@@ -36,6 +37,10 @@ requests>=2.31.0
 
 # Optional: Dropbox Integration (comment out if not needed)
 dropbox>=12.0.0
+
+# Optional: Web Loader Dependencies
+lxml>=4.9.0
+html5lib>=1.1
 
 # Optional: Web Loader Dependencies
 lxml>=4.9.0
