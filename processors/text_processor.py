@@ -68,19 +68,8 @@ def process_hscode_with_deepseek(product_data):
         st.info("Processing HScode with specialized Deepseek model...")
         chain = prompt_template | hscode_llm
 
-        # Prepare input variables for the HScode prompt
-        hscode_input = {
-            "product_name": product_data.get("product_name", ""),
-            "brand": product_data.get("brand", ""),
-            "product_type": product_data.get("product_type", ""),
-            "description": product_data.get("description", ""),
-            "ingredients": (
-                ", ".join(product_data.get("ingredients", []))
-                if isinstance(product_data.get("ingredients", []), list)
-                else product_data.get("ingredients", "")
-            ),
-            "how_to_use": product_data.get("how_to_use", ""),
-        }
+        # FIXED: Extract data from nested structures based on product type
+        hscode_input = extract_hscode_fields(product_data)
 
         # Invoke the chain with HScode variables
         response = chain.invoke(hscode_input)
@@ -108,6 +97,168 @@ def process_hscode_with_deepseek(product_data):
     except Exception as e:
         st.error(f"Error while processing HScode with Deepseek: {e}")
         return product_data.get("hscode")  # Fall back to original HScode
+
+
+def extract_hscode_fields(product_data):
+    """
+    Extract HScode-relevant fields from product data, handling different structures
+    
+    Args:
+        product_data (dict): Product data from LLM processing
+        
+    Returns:
+        dict: Standardized fields for HScode processing
+    """
+    # Initialize with empty defaults
+    hscode_input = {
+        "product_name": "",
+        "brand": "",
+        "product_type": "",
+        "description": "",
+        "ingredients": "",
+        "how_to_use": ""
+    }
+    
+    # Extract product_name - try multiple possible locations
+    product_name_fields = [
+        "product_name",  # Fragrance (flat structure)
+        ("catalogB", "itemDescriptionEN"),  # Cosmetics & Subtype
+        ("catalogA", "product_title_EN"),   # Cosmetics alternative
+        ("catalogB", "itemDescriptionPT"),  # Portuguese fallback
+    ]
+    
+    for field in product_name_fields:
+        if isinstance(field, tuple):
+            # Nested field access
+            catalog, field_name = field
+            if catalog in product_data and isinstance(product_data[catalog], dict):
+                value = product_data[catalog].get(field_name)
+                if value and str(value).strip():
+                    hscode_input["product_name"] = str(value).strip()
+                    break
+        else:
+            # Direct field access
+            value = product_data.get(field)
+            if value and str(value).strip():
+                hscode_input["product_name"] = str(value).strip()
+                break
+    
+    # Extract brand - try multiple possible locations
+    brand_fields = [
+        "brand",  # Fragrance (flat structure)
+        ("catalogA", "brand"),  # Cosmetics
+        ("catalogB", "brand"),  # Subtype alternative
+    ]
+    
+    for field in brand_fields:
+        if isinstance(field, tuple):
+            # Nested field access
+            catalog, field_name = field
+            if catalog in product_data and isinstance(product_data[catalog], dict):
+                value = product_data[catalog].get(field_name)
+                if value and str(value).strip():
+                    hscode_input["brand"] = str(value).strip()
+                    break
+        else:
+            # Direct field access
+            value = product_data.get(field)
+            if value and str(value).strip():
+                hscode_input["brand"] = str(value).strip()
+                break
+    
+    # Extract product_type - try multiple possible locations
+    product_type_fields = [
+        "product_type",  # All structures may have this
+        ("catalogB", "product_type"),  # Nested alternative
+    ]
+    
+    for field in product_type_fields:
+        if isinstance(field, tuple):
+            catalog, field_name = field
+            if catalog in product_data and isinstance(product_data[catalog], dict):
+                value = product_data[catalog].get(field_name)
+                if value and str(value).strip():
+                    hscode_input["product_type"] = str(value).strip()
+                    break
+        else:
+            value = product_data.get(field)
+            if value and str(value).strip():
+                hscode_input["product_type"] = str(value).strip()
+                break
+    
+    # Extract description - try multiple possible locations
+    description_fields = [
+        "description",  # Fragrance and Cosmetics
+        "meta_description",  # Fragrance alternative
+        ("catalogA", "description"),  # Cosmetics nested
+    ]
+    
+    for field in description_fields:
+        if isinstance(field, tuple):
+            catalog, field_name = field
+            if catalog in product_data and isinstance(product_data[catalog], dict):
+                value = product_data[catalog].get(field_name)
+                if value and str(value).strip():
+                    hscode_input["description"] = str(value).strip()
+                    break
+        else:
+            value = product_data.get(field)
+            if value and str(value).strip():
+                hscode_input["description"] = str(value).strip()
+                break
+    
+    # Extract ingredients - try multiple possible locations
+    ingredients_fields = [
+        "ingredients",  # All structures
+        ("catalogB", "ingredients"),  # Nested alternative
+    ]
+    
+    for field in ingredients_fields:
+        if isinstance(field, tuple):
+            catalog, field_name = field
+            if catalog in product_data and isinstance(product_data[catalog], dict):
+                value = product_data[catalog].get(field_name)
+                if value:
+                    if isinstance(value, list):
+                        hscode_input["ingredients"] = ", ".join(str(item) for item in value)
+                    else:
+                        hscode_input["ingredients"] = str(value)
+                    break
+        else:
+            value = product_data.get(field)
+            if value:
+                if isinstance(value, list):
+                    hscode_input["ingredients"] = ", ".join(str(item) for item in value)
+                else:
+                    hscode_input["ingredients"] = str(value)
+                break
+    
+    # Extract how_to_use - try multiple possible locations  
+    how_to_use_fields = [
+        "how_to_use",  # All structures
+        ("catalogA", "how_to_use"),  # Cosmetics nested
+    ]
+    
+    for field in how_to_use_fields:
+        if isinstance(field, tuple):
+            catalog, field_name = field
+            if catalog in product_data and isinstance(product_data[catalog], dict):
+                value = product_data[catalog].get(field_name)
+                if value and str(value).strip():
+                    hscode_input["how_to_use"] = str(value).strip()
+                    break
+        else:
+            value = product_data.get(field)
+            if value and str(value).strip():
+                hscode_input["how_to_use"] = str(value).strip()
+                break
+    
+    # Debug logging - remove in production
+    print(f"DEBUG - HScode input extracted:")
+    for key, value in hscode_input.items():
+        print(f"  {key}: '{value[:100]}{'...' if len(str(value)) > 100 else ''}'")
+    
+    return hscode_input
 
 
 def process_with_llm(text, product_type, llm, run_name=None):
