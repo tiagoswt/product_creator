@@ -39,7 +39,7 @@ except ImportError:
 def main():
     st.set_page_config(
         page_title="Product Content Creator",
-        page_icon="💚",  # Changed to green heart to match Sweetcare branding
+        page_icon="💚",  # Changed to green heart to match Sweecre branding
         layout="wide",
         initial_sidebar_state="collapsed",  # Changed from "expanded" to "collapsed"
     )
@@ -61,11 +61,11 @@ def main():
 
     # If we get here, user is authenticated - show the main app
 
-    # ENHANCED: Custom header with user info and Sweetcare logo
+    # ENHANCED: Custom header with user info and  logo
     col1, col2, col3 = st.columns([1, 8, 2])
 
     with col1:
-        # Display Sweetcare logo
+        # Display  logo
         try:
             st.image("sweetlogo.jpg", width=60)
         except:
@@ -73,7 +73,7 @@ def main():
             st.markdown("💚", unsafe_allow_html=True)
 
     with col2:
-        st.markdown("# Sweetcare Product Content Creator")
+        st.markdown("# Product Content Creator")
 
     with col3:
         # ENHANCED: Show current user info
