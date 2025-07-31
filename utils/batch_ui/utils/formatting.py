@@ -5,6 +5,7 @@ Formatting utilities for batch UI components
 import re
 from typing import Dict, Any, List
 from datetime import datetime
+from processors.text_processor import get_hscode_from_product_data
 
 
 class ResultFormatter:
@@ -218,7 +219,8 @@ class ResultFormatter:
             "price": ResultFormatter.format_price_display(result),
             "size": ResultFormatter.format_size_display(result),
             "type": result.get("product_type", "N/A"),
-            "hscode": result.get("hscode", "N/A"),
+            "hscode": get_hscode_from_product_data(result)
+            or "N/A",  # CHANGED THIS LINE
             "ean": result.get("EAN", "N/A"),
             "cnp": result.get("CNP", "N/A"),
         }
@@ -230,13 +232,13 @@ class ResultFormatter:
         product_name = ResultFormatter._get_product_name_from_result(result)
 
         copy_text = f"""Product: {brand} {product_name}
-Brand: {brand}
-Price: {ResultFormatter.format_price_display(result)}
-Type: {result.get('product_type', 'N/A')}
-Size: {ResultFormatter.format_size_display(result)}
-HScode: {result.get('hscode', 'N/A')}
-EAN: {result.get('EAN', 'N/A')}
-CNP: {result.get('CNP', 'N/A')}"""
+    Brand: {brand}
+    Price: {ResultFormatter.format_price_display(result)}
+    Type: {result.get('product_type', 'N/A')}
+    Size: {ResultFormatter.format_size_display(result)}
+    HScode: {get_hscode_from_product_data(result) or 'N/A'}
+    EAN: {result.get('EAN', 'N/A')}
+    CNP: {result.get('CNP', 'N/A')}"""
 
         return copy_text
 
@@ -418,7 +420,8 @@ class TableFormatter:
                 "Type": result.get("product_type", "N/A"),
                 "Price": ResultFormatter.format_price_display(result),
                 "Size": ResultFormatter.format_size_display(result),
-                "HScode": result.get("hscode", "N/A"),
+                "HScode": get_hscode_from_product_data(result)
+                or "N/A",  # CHANGED THIS LINE
                 "EAN": result.get("EAN", "N/A"),
             }
             formatted_results.append(formatted_result)
