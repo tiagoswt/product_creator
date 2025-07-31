@@ -7,6 +7,7 @@ import json
 import pandas as pd
 from datetime import datetime
 import config
+from processors.text_processor import get_hscode_from_product_data
 
 # Import Dropbox utilities
 try:
@@ -332,12 +333,12 @@ class ExportHandler:
         product_name = self._get_product_name_from_result(result)
 
         copy_text = f"""Product: {brand} {product_name}
-Brand: {brand}
-Price: {result.get('price', 'N/A')} {result.get('currency', '')}
-Type: {result.get('product_type', 'N/A')}
-Size: {result.get('size', 'N/A')} {result.get('unit', '')}
-HScode: {result.get('hscode', 'N/A')}
-EAN: {result.get('EAN', 'N/A')}
-CNP: {result.get('CNP', 'N/A')}"""
+    Brand: {brand}
+    Price: {result.get('price', 'N/A')} {result.get('currency', '')}
+    Type: {result.get('product_type', 'N/A')}
+    Size: {result.get('size', 'N/A')} {result.get('unit', '')}
+    HScode: {get_hscode_from_product_data(result) or 'N/A'}
+    EAN: {result.get('EAN', 'N/A')}
+    CNP: {result.get('CNP', 'N/A')}"""
 
         return copy_text
