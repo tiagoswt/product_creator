@@ -76,3 +76,36 @@ DROPBOX_ADD_TIMESTAMP = True  # Add timestamp to avoid conflicts
 # PDF preview settings - Updated for higher resolution
 PDF_PREVIEW_SCALE = 0.7  # Increased from 0.5 for better quality and bigger images
 
+# Evaluation System Configuration
+EVALUATION_ENABLED = True  # Master switch for evaluation system
+EVALUATION_MODEL = "gpt-4o-mini"  # Cost-effective model for evaluation
+EVALUATION_PROVIDER = "openai"  # Provider for evaluation model
+
+# PHASE 3: OpenEvals Configuration
+USE_OPENEVALS = True  # MAIN SWITCH: Enable OpenEvals 3-metric evaluator
+OPENEVALS_MODEL = "gpt-4o-mini"  # Model for OpenEvals evaluations
+OPENEVALS_PROVIDER = "openai"  # Provider for OpenEvals evaluations
+OPENEVALS_TEMPERATURE = 0.1  # Low temperature for consistent evaluation
+OPENEVALS_DEBUG = True  # Enable debug logging for OpenEvals
+
+# OpenEvals 3-Metric System Configuration
+EVALUATION_METRICS = [
+    "structure_correctness",  # JSON structure and schema validation
+    "content_correctness",  # Accuracy vs input, hallucination detection
+    "translation_correctness",  # Portuguese translation quality
+]
+
+# Evaluation scoring weights for overall score calculation
+EVALUATION_WEIGHTS = {
+    "structure_correctness": 0.2,  # 20% - Structure compliance
+    "content_correctness": 0.5,  # 50% - Content accuracy (most important)
+    "translation_correctness": 0.3,  # 30% - Translation quality
+}
+
+# LangSmith Integration for Evaluations
+LANGSMITH_EVALUATION_PROJECT = (
+    "product_extraction_quality"  # Separate project for evaluations
+)
+EVALUATION_DATASET_NAME = "product_extraction_evals"
+EVALUATION_DATASET_AUTO_CREATE = True  # Auto-create datasets in LangSmith
+EVALUATION_CACHE_ENABLED = True  # Cache evaluation results for identical inputs
