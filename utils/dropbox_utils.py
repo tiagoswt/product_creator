@@ -5,6 +5,7 @@ from dropbox.exceptions import AuthError, ApiError
 import json
 from datetime import datetime
 import config
+from processors.text_processor import get_hscode_from_product_data
 
 
 def get_dropbox_client():
@@ -341,7 +342,7 @@ def create_product_filename_custom(
     Create a custom filename based on product type and configuration
 
     Args:
-        product_config: ProductConfig object containing product type and base_product
+        product_config:  object containing product type and base_product
         result_data (dict): Product result data
         is_reprocessed (bool): Whether this is a reprocessed file
         debug (bool): Whether to show debug information
