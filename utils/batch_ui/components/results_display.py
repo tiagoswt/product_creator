@@ -6,6 +6,7 @@ Analytics and filtering moved to tabbed_analytics_dashboard.py
 
 import streamlit as st
 import re
+import json
 from .export_buttons import ExportButtons
 from .progress_tracker import ProgressTracker
 
@@ -44,9 +45,12 @@ class ResultsDisplay:
             "translation": "No specific reasoning provided",
         }
 
-        # Try to parse OpenEvals format: "metric_name: reasoning | metric_name: reasoning"
-        if " | " in llm_reasoning:
-            parts = llm_reasoning.split(" | ")
+        # Try to parse different formats of AI reasoning
+        reasoning_text = llm_reasoning.strip()
+
+        # Format 1: OpenEvals format with separators
+        if " | " in reasoning_text:
+            parts = reasoning_text.split(" | ")
             for part in parts:
                 if ":" in part:
                     metric_part, reasoning_part = part.split(":", 1)
@@ -54,505 +58,85 @@ class ResultsDisplay:
                     reasoning_part = reasoning_part.strip()
 
                     # Map different metric naming conventions
-                    if "structure" in metric_part:
+                    if any(
+                        keyword in metric_part
+                        for keyword in ["structure", "json", "schema"]
+                    ):
                         parsed_reasoning["structure"] = reasoning_part
-                    elif "content" in metric_part or "accuracy" in metric_part:
+                    elif any(
+                        keyword in metric_part
+                        for keyword in ["content", "accuracy", "hallucination"]
+                    ):
                         parsed_reasoning["content"] = reasoning_part
-                    elif "translation" in metric_part or "completeness" in metric_part:
+                    elif any(
+                        keyword in metric_part
+                        for keyword in ["translation", "portuguese", "language"]
+                    ):
                         parsed_reasoning["translation"] = reasoning_part
 
-        # Try to parse fallback format or single reasoning
+        # Format 2: Try to parse by evaluation keywords
         elif any(
-            keyword in llm_reasoning.lower()
+            keyword in reasoning_text.lower()
             for keyword in ["structure", "content", "translation"]
         ):
-            # Try to find individual metric reasoning within a longer text
-            lines = llm_reasoning.split("\n")
-            current_metric = None
-            current_reasoning = []
+            # Split by common patterns
+            sections = []
 
-            for line in lines:
-                line = line.strip()
-                if not line:
-                    continue
+            # Look for section headers
+            import re
 
-                # Check if line starts a new metric section
-                if line.lower().startswith("structure"):
-                    if current_metric and current_reasoning:
-                        parsed_reasoning[current_metric] = " ".join(current_reasoning)
-                    current_metric = "structure"
-                    current_reasoning = (
-                        [line.split(":", 1)[-1].strip()] if ":" in line else [line]
-                    )
-                elif line.lower().startswith("content") or line.lower().startswith(
-                    "accuracy"
-                ):
-                    if current_metric and current_reasoning:
-                        parsed_reasoning[current_metric] = " ".join(current_reasoning)
-                    current_metric = "content"
-                    current_reasoning = (
-                        [line.split(":", 1)[-1].strip()] if ":" in line else [line]
-                    )
-                elif line.lower().startswith("translation") or line.lower().startswith(
-                    "completeness"
-                ):
-                    if current_metric and current_reasoning:
-                        parsed_reasoning[current_metric] = " ".join(current_reasoning)
-                    current_metric = "translation"
-                    current_reasoning = (
-                        [line.split(":", 1)[-1].strip()] if ":" in line else [line]
-                    )
-                else:
-                    # Continue current reasoning
-                    if current_metric:
-                        current_reasoning.append(line)
+            section_pattern = r"(Structure|Content|Translation|structure|content|translation).*?(?=(?:Structure|Content|Translation|structure|content|translation)|$)"
+            matches = re.findall(
+                section_pattern, reasoning_text, re.DOTALL | re.IGNORECASE
+            )
 
-            # Don't forget the last metric
-            if current_metric and current_reasoning:
-                parsed_reasoning[current_metric] = " ".join(current_reasoning)
+            for match in matches:
+                if match:
+                    section_text = match.strip()
+                    if any(
+                        keyword in section_text.lower()[:20]
+                        for keyword in ["structure", "json", "schema"]
+                    ):
+                        parsed_reasoning["structure"] = section_text
+                    elif any(
+                        keyword in section_text.lower()[:20]
+                        for keyword in ["content", "accuracy"]
+                    ):
+                        parsed_reasoning["content"] = section_text
+                    elif any(
+                        keyword in section_text.lower()[:20]
+                        for keyword in ["translation", "portuguese"]
+                    ):
+                        parsed_reasoning["translation"] = section_text
 
-        else:
-            # Single reasoning block - use for all metrics
-            parsed_reasoning = {
-                "structure": llm_reasoning,
-                "content": llm_reasoning,
-                "translation": llm_reasoning,
-            }
+        # Format 3: Fallback - use entire reasoning for content if no proper parsing possible
+        if all(
+            v in ["No specific reasoning provided", "No reasoning available"]
+            for v in parsed_reasoning.values()
+        ):
+            # If it's short, put it in all categories, if long put it in content
+            if len(reasoning_text) < 200:
+                parsed_reasoning = {
+                    "structure": reasoning_text,
+                    "content": reasoning_text,
+                    "translation": reasoning_text,
+                }
+            else:
+                parsed_reasoning["content"] = reasoning_text
 
         return parsed_reasoning
 
-    def _render_enhanced_ai_reasoning(self, llm_reasoning: str, unique_key: str):
-        """
-        Render AI reasoning in 3 separate columns for better readability.
-
-        Args:
-            llm_reasoning (str): The concatenated AI reasoning
-            unique_key (str): Unique key for Streamlit components
-        """
-        st.markdown("**🤖 AI Quality Assessment Reasoning**")
-
-        # Parse the reasoning into components
-        parsed_reasoning = self._parse_ai_reasoning(llm_reasoning)
-
-        # Display in 3 columns
-        col1, col2, col3 = st.columns(3)
-
-        with col1:
-            st.markdown("**🏗️ Structure Evaluation**")
-            st.markdown("*JSON format and schema compliance*")
-            st.text_area(
-                "Structure Reasoning",
-                value=parsed_reasoning["structure"],
-                height=120,
-                key=f"structure_reasoning_{unique_key}",
-                disabled=True,
-                label_visibility="collapsed",
-            )
-
-        with col2:
-            st.markdown("**📝 Content Evaluation**")
-            st.markdown("*Accuracy vs input, hallucination detection*")
-            st.text_area(
-                "Content Reasoning",
-                value=parsed_reasoning["content"],
-                height=120,
-                key=f"content_reasoning_{unique_key}",
-                disabled=True,
-                label_visibility="collapsed",
-            )
-
-        with col3:
-            st.markdown("**🌍 Translation Evaluation**")
-            st.markdown("*Portuguese translation quality*")
-            st.text_area(
-                "Translation Reasoning",
-                value=parsed_reasoning["translation"],
-                height=120,
-                key=f"translation_reasoning_{unique_key}",
-                disabled=True,
-                label_visibility="collapsed",
-            )
-
-    def _get_product_name_from_result(self, result):
-        """Extract product name from result, trying multiple possible field names"""
-        # Try different field names in order of preference
-        name_fields = [
-            "itemDescriptionEN",  # For cosmetics and subtype
-            "product_name",  # For fragrance
-            "product_title_EN",  # Alternative from catalogA
-            "itemDescriptionPT",  # Portuguese fallback
-            "product_title_PT",  # Portuguese fallback
-        ]
-
-        for field in name_fields:
-            # Handle nested catalogB structure
-            if "catalogB" in result and isinstance(result["catalogB"], dict):
-                value = result["catalogB"].get(field)
-                if (
-                    value
-                    and value.strip()
-                    and value.lower() not in ["", "null", "none", "unknown"]
-                ):
-                    return value.strip()
-
-            # Handle flat structure
-            value = result.get(field)
-            if (
-                value
-                and value.strip()
-                and value.lower() not in ["", "null", "none", "unknown"]
-            ):
-                return value.strip()
-
-        return "Unknown Product"
-
-    def _get_brand_from_result(self, result):
-        """Extract brand from result, handling nested structures"""
-        # Try different field names and structures
-        brand_fields = ["brand", "Brand", "BRAND"]
-
-        for field in brand_fields:
-            # Handle nested catalogA or catalogB structure
-            for catalog in ["catalogA", "catalogB"]:
-                if catalog in result and isinstance(result[catalog], dict):
-                    value = result[catalog].get(field)
-                    if (
-                        value
-                        and value.strip()
-                        and value.lower() not in ["", "null", "none", "unknown"]
-                    ):
-                        return value.strip()
-
-            # Handle flat structure
-            value = result.get(field)
-            if (
-                value
-                and value.strip()
-                and value.lower() not in ["", "null", "none", "unknown"]
-            ):
-                return value.strip()
-
-        return "Unknown"
-
-    def _get_failed_product_preview(self, config):
-        """Get a preview name for a failed product configuration"""
-        try:
-            # Try to extract a preview from the sources
-            if config.pdf_file:
-                return f"PDF: {config.pdf_file.name[:25]}..."
-            elif config.excel_file:
-                return f"Excel: {config.excel_file.name[:25]}..."
-            elif config.website_url:
-                url = config.website_url.split(",")[0].strip()
-                if len(url) > 30:
-                    url = url[:27] + "..."
-                return f"Web: {url}"
-            else:
-                return f"{config.product_type.title()} Product"
-        except:
-            return f"{config.product_type.title()} Product"
-
-    def _format_creator_info(self, config) -> str:
-        """
-        PHASE 3: Format creator information for display.
-
-        Args:
-            config: Product configuration with user attribution
-
-        Returns:
-            Formatted creator string
-        """
-        try:
-            if hasattr(config, "creator_summary"):
-                return config.creator_summary()
-            elif hasattr(config, "created_by_username"):
-                username = getattr(config, "created_by_username", "unknown")
-                user_name = getattr(config, "created_by_name", "Unknown User")
-                if username != "system" and username != "unknown":
-                    return f"Created by: {user_name} ({username})"
-                else:
-                    return "Created by: System"
-            else:
-                return "Creator: Unknown"
-        except:
-            return "Creator: Unknown"
-
-    def render_minimalist_results(self, all_configs):
-        """Render minimalist results list with PHASE 3 user attribution (no filtering)"""
-        if not all_configs:
+    def render_bulk_export_section(self, completed_configs):
+        """Render the Export All Results section with all three options"""
+        if not completed_configs:
             return
-
-        # Show all results: completed, failed, and processing with product numbers
-        for i, config in enumerate(all_configs):
-            product_num = i + 1  # Product numbering starts from 1
-
-            if config.has_successful_attempt():
-                latest_attempt = config.get_latest_attempt()
-                result = latest_attempt.result
-
-                brand = self._get_brand_from_result(result)
-                product_name = self._get_product_name_from_result(result)
-
-                # Get evaluation data for quality badge
-                try:
-                    from evaluations.evaluation_core import get_evaluation_for_config
-                    from evaluations.evaluation_ui import render_quality_badge
-
-                    evaluation = get_evaluation_for_config(config.id)
-                    quality_badge = render_quality_badge(evaluation)
-                except (ImportError, Exception):
-                    quality_badge = ""
-
-                # PHASE 3: Get creator info
-                creator_info = self._format_creator_info(config)
-
-                # Compact successful result display with product number, quality, and creator
-                col1, col2 = st.columns([4, 1])
-                with col1:
-                    success_text = f"Product {product_num}: ✅ {brand} - {product_name}"
-                    if quality_badge:
-                        success_text += f" | {quality_badge}"
-                    # PHASE 3: Add creator info
-                    success_text += f" | {creator_info}"
-                    st.success(success_text, icon="✅")
-                with col2:
-                    if st.button("👁️", key=f"view_min_{config.id}", help="View details"):
-                        toggle_key = f"minimalist_expanded_{config.id}"
-                        st.session_state[toggle_key] = not st.session_state.get(
-                            toggle_key, False
-                        )
-
-                # Show details if expanded - ENHANCED AI REASONING SECTION
-                if st.session_state.get(f"minimalist_expanded_{config.id}", False):
-                    with st.container():
-
-                        # PHASE 3: CREATOR INFORMATION (FIRST)
-                        st.markdown("**👤 Creator Information**")
-                        creator_col1, creator_col2 = st.columns(2)
-
-                        with creator_col1:
-                            username = getattr(config, "created_by_username", "unknown")
-                            user_name = getattr(
-                                config, "created_by_name", "Unknown User"
-                            )
-                            st.write(f"**Created by:** {user_name}")
-                            st.write(f"**Username:** {username}")
-
-                        with creator_col2:
-                            created_at = getattr(config, "created_at", None)
-                            if created_at:
-                                st.write(
-                                    f"**Created:** {created_at.strftime('%Y-%m-%d %H:%M')}"
-                                )
-
-                            # Show processor info if different from creator
-                            processor_info = (
-                                config.get_latest_processor_info()
-                                if hasattr(config, "get_latest_processor_info")
-                                else {}
-                            )
-                            if (
-                                processor_info.get("username")
-                                and processor_info.get("username") != username
-                            ):
-                                st.write(
-                                    f"**Processed by:** {processor_info.get('user_name', 'Unknown')} ({processor_info.get('username')})"
-                                )
-
-                        st.markdown("---")
-
-                        # ============================================
-                        # 1. VIEW JSON DROPDOWN (SECOND)
-                        # ============================================
-                        with st.expander("📄 View JSON Data", expanded=False):
-                            st.json(result)
-
-                        st.markdown("---")  # Separator
-
-                        # ============================================
-                        # 2. HUMAN FEEDBACK (THIRD)
-                        # ============================================
-                        st.markdown("**👥 Human Feedback**")
-                        try:
-                            from evaluations.evaluation_core import (
-                                get_evaluation_for_config,
-                            )
-
-                            evaluation = get_evaluation_for_config(config.id)
-                            if evaluation:
-                                # Import the human feedback component specifically
-                                from evaluations.evaluation_ui import (
-                                    _render_human_feedback_section,
-                                )
-
-                                _render_human_feedback_section(evaluation)
-                            else:
-                                st.info(
-                                    "Complete an AI evaluation first to provide human feedback"
-                                )
-                        except (ImportError, Exception):
-                            st.info("Human feedback system not available")
-
-                        st.markdown("---")  # Separator
-
-                        # ============================================
-                        # 3. AI EVALUATION WITH ENHANCED REASONING (FOURTH)
-                        # ============================================
-                        st.markdown("**🧠 AI Quality Assessment**")
-                        try:
-                            from evaluations.evaluation_core import (
-                                get_evaluation_for_config,
-                            )
-
-                            evaluation = get_evaluation_for_config(config.id)
-                            if evaluation:
-                                # Show metrics in compact format
-                                col1, col2, col3, col4 = st.columns(4)
-
-                                with col1:
-                                    # Structure Correctness
-                                    st.metric(
-                                        "Structure",
-                                        f"{evaluation.get('structure_score', 0)}/5",
-                                        help="JSON structure and schema compliance",
-                                    )
-                                with col2:
-                                    # Content Correctness
-                                    st.metric(
-                                        "Content",
-                                        f"{evaluation.get('accuracy_score', 0)}/5",
-                                        help="Accuracy vs input, hallucination detection",
-                                    )
-                                with col3:
-                                    # Translation Correctness
-                                    st.metric(
-                                        "Translation",
-                                        f"{evaluation.get('translation_score', 0)}/5",
-                                        help="Portuguese translation quality",
-                                    )
-                                with col4:
-                                    overall = evaluation.get("overall_score", 0)
-                                    delta = (
-                                        "Excellent"
-                                        if overall >= 4.0
-                                        else (
-                                            "Good"
-                                            if overall >= 3.0
-                                            else "Fair" if overall >= 2.0 else "Poor"
-                                        )
-                                    )
-                                    st.metric("Overall", f"{overall}/5", delta=delta)
-
-                                # ENHANCED: Show AI reasoning in 3 columns instead of single text area
-                                reasoning = evaluation.get("llm_reasoning", "")
-                                if reasoning:
-                                    with st.expander(
-                                        "🤔 AI Assessment Details", expanded=False
-                                    ):
-                                        self._render_enhanced_ai_reasoning(
-                                            reasoning, f"eval_{config.id}"
-                                        )
-
-                                # Show evaluator type
-                                eval_model = evaluation.get("evaluation_model", "")
-                                if "openevals" in eval_model.lower():
-                                    st.caption(
-                                        "🔬 Evaluated using OpenEvals 3-Metric System"
-                                    )
-                                elif "fallback" in eval_model.lower():
-                                    st.caption("⚡ Evaluated using Fallback System")
-
-                            else:
-                                st.info(
-                                    "🤖 No AI evaluation available for this product"
-                                )
-                        except (ImportError, Exception):
-                            st.info("🤖 AI evaluation system not available")
-
-                        st.markdown("---")  # Separator
-
-                        # ============================================
-                        # 4. EXPORT OPTIONS (LAST)
-                        # ============================================
-                        st.markdown("**📤 Export Options**")
-                        export_col1, export_col2 = st.columns(2)
-
-                        with export_col1:
-                            self.export_buttons.render_json_download_button_compact(
-                                result, config.id
-                            )
-
-                        with export_col2:
-                            self.export_buttons.render_dropbox_upload_button_compact(
-                                result, config.id
-                            )
-
-                        st.markdown("---")
-
-            elif config.status == "failed":
-                # PHASE 3: Add creator info to failed products
-                failed_preview = self._get_failed_product_preview(config)
-                creator_info = self._format_creator_info(config)
-
-                col1, col2 = st.columns([4, 1])
-                with col1:
-                    # PHASE 3: Include creator info
-                    st.error(
-                        f"Product {product_num}: ❌ {failed_preview} | {creator_info}",
-                        icon="❌",
-                    )
-                with col2:
-                    if st.button(
-                        "👁️", key=f"view_failed_{config.id}", help="View error details"
-                    ):
-                        toggle_key = f"failed_expanded_{config.id}"
-                        st.session_state[toggle_key] = not st.session_state.get(
-                            toggle_key, False
-                        )
-
-                # Show error details ONLY when expanded
-                if st.session_state.get(f"failed_expanded_{config.id}", False):
-                    with st.container():
-                        st.markdown("**❌ Extraction Failed**")
-
-                        # PHASE 3: Show creator information
-                        st.markdown("**👤 Creator Information**")
-                        username = getattr(config, "created_by_username", "unknown")
-                        user_name = getattr(config, "created_by_name", "Unknown User")
-                        st.write(f"**Created by:** {user_name} ({username})")
-
-                        latest_attempt = config.get_latest_attempt()
-                        if latest_attempt and latest_attempt.error_message:
-                            st.error(f"**Error:** {latest_attempt.error_message}")
-
-                        # Show configuration details
-                        st.markdown("**Configuration:**")
-                        st.write(f"- Product Type: {config.product_type}")
-                        st.write(
-                            f"- Model: {config.model_provider}/{config.model_name}"
-                        )
-                        st.write(f"- Sources: {config.source_summary()}")
-
-                        st.markdown("---")
-
-            elif config.status == "processing":
-                # PHASE 3: Add creator info to processing products
-                processing_preview = self._get_failed_product_preview(config)
-                creator_info = self._format_creator_info(config)
-                st.info(
-                    f"Product {product_num}: ⏳ {processing_preview} | {creator_info}",
-                    icon="⏳",
-                )
-
-    def render_minimalist_bulk_export(self, completed_configs):
-        """Render minimalist bulk export options - only JSON and Dropbox"""
 
         st.subheader("📤 Export All Results")
 
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
 
         with col1:
-            # All as JSON button
+            # All as JSON button (single file)
             all_results = [
                 config.get_latest_attempt().result for config in completed_configs
             ]
@@ -567,9 +151,14 @@ class ResultsDisplay:
                 file_name=filename,
                 mime="application/json",
                 use_container_width=True,
+                help="Download all products in a single JSON file",
             )
 
         with col2:
+            # Individual JSON files as ZIP
+            self.export_buttons._render_individual_json_export_button(completed_configs)
+
+        with col3:
             # All to Dropbox button
             if self.export_buttons.export_handler.dropbox_available:
                 if st.button(
@@ -588,7 +177,6 @@ class ResultsDisplay:
                     help="Dropbox integration not available",
                 )
 
-    # Keep all other existing methods unchanged for backward compatibility
     def render_all_results(self, all_configs):
         """Render all product results with status and PHASE 3 user attribution (no filtering)"""
         if not all_configs:
@@ -618,7 +206,84 @@ class ResultsDisplay:
         ]
         if completed_configs:
             st.markdown("---")
-            self.export_buttons.render_bulk_export_buttons(completed_configs)
+            self.render_bulk_export_section(completed_configs)
+
+    def render_results(self, all_configs):
+        """Alternative entry point - renders results with enhanced layout"""
+        if not all_configs:
+            st.info("No product configurations found.")
+            return
+
+        # Show summary metrics
+        total = len(all_configs)
+        completed = sum(1 for config in all_configs if config.has_successful_attempt())
+        failed = sum(1 for config in all_configs if config.status == "failed")
+        pending = total - completed - failed
+
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total", total)
+        with col2:
+            st.metric("Completed", completed, delta="✅" if completed > 0 else None)
+        with col3:
+            st.metric("Failed", failed, delta="❌" if failed > 0 else None)
+        with col4:
+            st.metric("Pending", pending, delta="⏳" if pending > 0 else None)
+
+        st.markdown("---")
+
+        # Render each product result
+        for i, config in enumerate(all_configs):
+            with st.container():
+                # Create header with status
+                if config.has_successful_attempt():
+                    status_icon = "✅"
+                    latest_attempt = config.get_latest_attempt()
+                    result = latest_attempt.result
+                    brand = self._get_brand_from_result(result)
+                    product_name = self._get_product_name_from_result(result)
+                    product_title = f"{brand} - {product_name}"
+                elif config.status == "failed":
+                    status_icon = "❌"
+                    product_title = "Failed Extraction"
+                else:
+                    status_icon = "⏳"
+                    product_title = "Pending Extraction"
+
+                # PHASE 3: Get creator info
+                creator_info = self._format_creator_info(config)
+
+                # Product header with expandable details
+                col1, col2, col3 = st.columns([8, 1, 1])
+
+                with col1:
+                    st.markdown(f"**{i+1}. {status_icon} {product_title}**")
+                    # PHASE 3: Show creator and source info
+                    source_summary = getattr(
+                        config, "source_summary", lambda: "No sources"
+                    )()
+                    st.caption(f"Sources: {source_summary} | {creator_info}")
+
+                with col2:
+                    # View JSON button
+                    if st.button(
+                        "📄", key=f"view_result_{config.id}", help="View JSON"
+                    ):
+                        toggle_key = f"result_expanded_{config.id}"
+                        st.session_state[toggle_key] = not st.session_state.get(
+                            toggle_key, False
+                        )
+
+                with col3:
+                    # Mark for reprocessing button (only for completed or failed)
+                    if config.has_successful_attempt() or config.status == "failed":
+                        self._render_reprocess_toggle(config)
+
+                # Show details if expanded
+                if st.session_state.get(f"result_expanded_{config.id}", False):
+                    self._render_expanded_result(config)
+
+                st.markdown("---")
 
     def _render_single_result(self, config, index):
         """Render a single product result with PHASE 3 user attribution"""
@@ -648,28 +313,187 @@ class ResultsDisplay:
             col1, col2, col3 = st.columns([8, 1, 1])
 
             with col1:
-                st.markdown(f"**{index}. {status_icon} {product_title}**")
-                # PHASE 3: Show creator and source info
-                st.caption(f"Sources: {config.source_summary()} | {creator_info}")
+                st.markdown(
+                    f"**{index}. {status_icon} {product_title}** | {creator_info}"
+                )
 
             with col2:
-                # View JSON button
-                if st.button("📄", key=f"view_result_{config.id}", help="View JSON"):
-                    toggle_key = f"result_expanded_{config.id}"
+                # Toggle button for detailed view
+                if st.button("👁️", key=f"toggle_{config.id}", help="View details"):
+                    toggle_key = f"expanded_{config.id}"
                     st.session_state[toggle_key] = not st.session_state.get(
                         toggle_key, False
                     )
 
             with col3:
-                # Mark for reprocessing button (only for completed or failed)
-                if config.has_successful_attempt() or config.status == "failed":
-                    self._render_reprocess_toggle(config)
+                # Quick export for successful results
+                if config.has_successful_attempt():
+                    self.export_buttons.render_json_download_button_compact(
+                        result, config.id
+                    )
 
-            # Show details if expanded
-            if st.session_state.get(f"result_expanded_{config.id}", False):
-                self._render_expanded_result(config)
+            # Detailed view (expandable)
+            if st.session_state.get(f"expanded_{config.id}", False):
+                self._render_detailed_view(config)
 
             st.markdown("---")
+
+    def _render_detailed_view(self, config):
+        """Render detailed view of a single configuration"""
+        if config.has_successful_attempt():
+            latest_attempt = config.get_latest_attempt()
+            result = latest_attempt.result
+
+            # Show data sources
+            self._render_data_sources(config)
+
+            # Show extraction results in tabs
+            tab1, tab2, tab3, tab4 = st.tabs(
+                ["📋 Product Info", "📊 Raw JSON", "🧠 AI Evaluation", "📤 Export"]
+            )
+
+            with tab1:
+                self._render_product_info_tab(result)
+
+            with tab2:
+                st.json(result)
+
+            with tab3:
+                # AI EVALUATION TAB
+                st.markdown("### 🧠 AI Quality Evaluation")
+                try:
+                    from evaluations.evaluation_core import get_evaluation_for_config
+
+                    evaluation = get_evaluation_for_config(config.id)
+                    if evaluation:
+                        # Show evaluation scores in metrics
+                        eval_col1, eval_col2, eval_col3, eval_col4 = st.columns(4)
+
+                        with eval_col1:
+                            st.metric(
+                                "Structure", f"{evaluation.get('structure_score', 0)}/5"
+                            )
+                        with eval_col2:
+                            # FIX: Try multiple possible field names for content score
+                            content_score = evaluation.get(
+                                "content_score", 0
+                            ) or evaluation.get("accuracy_score", 0)
+                            st.metric("Content", f"{content_score}/5")
+                        with eval_col3:
+                            st.metric(
+                                "Translation",
+                                f"{evaluation.get('translation_score', 0)}/5",
+                            )
+                        with eval_col4:
+                            overall = evaluation.get("overall_score", 0)
+                            st.metric("Overall", f"{overall}/5")
+
+                        # Show detailed evaluation with reasoning
+                        st.markdown("---")
+                        st.markdown("### 🤔 AI Assessment Details")
+
+                        reasoning = evaluation.get("llm_reasoning", "")
+                        if reasoning:
+                            # Parse reasoning into components
+                            parsed_reasoning = self._parse_ai_reasoning(reasoning)
+
+                            eval_reason_col1, eval_reason_col2, eval_reason_col3 = (
+                                st.columns(3)
+                            )
+
+                            with eval_reason_col1:
+                                st.markdown("**📐 Structure**")
+                                st.write(
+                                    parsed_reasoning.get(
+                                        "structure", "No reasoning available"
+                                    )
+                                )
+
+                            with eval_reason_col2:
+                                st.markdown("**📝 Content**")
+                                st.write(
+                                    parsed_reasoning.get(
+                                        "content", "No reasoning available"
+                                    )
+                                )
+
+                            with eval_reason_col3:
+                                st.markdown("**🗣️ Translation**")
+                                st.write(
+                                    parsed_reasoning.get(
+                                        "translation", "No reasoning available"
+                                    )
+                                )
+                        else:
+                            st.info(
+                                "No detailed reasoning available for this evaluation"
+                            )
+
+                        # Show evaluation metadata
+                        st.markdown("---")
+                        st.markdown("**📋 Evaluation Metadata:**")
+                        metadata_col1, metadata_col2 = st.columns(2)
+                        with metadata_col1:
+                            st.write(
+                                f"• **Model Used:** {evaluation.get('evaluation_model', 'Unknown')}"
+                            )
+                            st.write(
+                                f"• **Product Type:** {evaluation.get('product_type', 'Unknown')}"
+                            )
+                        with metadata_col2:
+                            st.write(
+                                f"• **Evaluated:** {evaluation.get('created_at', 'Unknown')}"
+                            )
+                            st.write(
+                                f"• **Evaluation ID:** {evaluation.get('id', 'Unknown')}"
+                            )
+
+                        # Human feedback section
+                        st.markdown("---")
+                        st.markdown("### 👥 Human Feedback")
+                        try:
+                            from evaluations.evaluation_ui import (
+                                _render_human_feedback_section,
+                            )
+
+                            _render_human_feedback_section(evaluation)
+                        except (ImportError, Exception):
+                            st.info("Human feedback system not available")
+
+                    else:
+                        st.info(
+                            "🤖 No AI quality evaluation available for this product"
+                        )
+                        st.markdown("**Why no evaluation?**")
+                        st.write(
+                            "• Evaluations are automatically generated after extraction"
+                        )
+                        st.write("• Check if the evaluation system is enabled")
+                        st.write(
+                            "• Try re-running the extraction to trigger evaluation"
+                        )
+
+                except (ImportError, Exception) as e:
+                    st.error(f"AI evaluation system not available: {str(e)}")
+
+            with tab4:
+                self.export_buttons.render_single_product_buttons(result, config.id)
+
+        elif config.status == "failed":
+            # Show error details
+            failed_preview = self._get_failed_product_preview(config)
+            st.error(f"❌ {failed_preview}")
+
+            if hasattr(config, "error_message") and config.error_message:
+                st.code(config.error_message)
+
+            # Show data sources for context
+            self._render_data_sources(config)
+
+        else:
+            # Pending/processing status
+            st.info("⏳ Processing in progress...")
+            self._render_data_sources(config)
 
     def _render_expanded_result(self, config):
         """Render expanded result details with PHASE 3 user attribution"""
@@ -759,71 +583,8 @@ class ResultsDisplay:
             st.session_state[reprocess_key] = not current_marked
             st.rerun()
 
-    def render_config_list(self, configs):
-        """Render list of existing configurations with PHASE 3 user attribution (no filtering)"""
-        if not configs:
-            st.info(
-                "No product configurations added yet. Use the form below to add your first configuration."
-            )
-            return
-
-        st.write(f"Total configurations: {len(configs)}")
-
-        # Display each configuration
-        for i, config in enumerate(configs):
-            with st.container():
-                config_key = f"config_expanded_{config.id}"
-                if config_key not in st.session_state:
-                    st.session_state[config_key] = False
-
-                col1, col2, col3 = st.columns([8, 1, 1])
-
-                with col1:
-                    # PHASE 3: Include creator info
-                    creator_info = self._format_creator_info(config)
-                    st.write(
-                        f"**Product {i+1}:** {config.source_summary()} | {creator_info}"
-                    )
-
-                with col2:
-                    if st.button(
-                        "👁️", key=f"view_config_{config.id}", help="View details"
-                    ):
-                        st.session_state[config_key] = not st.session_state[config_key]
-
-                with col3:
-                    if st.button("🗑️", key=f"remove_{config.id}", help="Remove"):
-                        from utils.product_config import remove_product_config
-
-                        remove_product_config(config.id)
-                        st.rerun()
-
-                # Show details if toggled
-                if st.session_state[config_key]:
-                    self._render_config_details(config)
-
-                st.markdown("---")
-
-    def _render_config_details(self, config):
-        """Render detailed configuration information with PHASE 3 user attribution"""
-        # PHASE 3: Show creator information first
-        st.write("**👤 Creator Information**")
-        username = getattr(config, "created_by_username", "unknown")
-        user_name = getattr(config, "created_by_name", "Unknown User")
-        created_at = getattr(config, "created_at", None)
-
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write(f"**Created by:** {user_name} ({username})")
-        with col2:
-            if created_at:
-                st.write(f"**Created:** {created_at.strftime('%Y-%m-%d %H:%M')}")
-
-        st.write(f"**Product Type:** {config.product_type}")
-        st.write(f"**Model:** {config.model_provider} / {config.model_name}")
-        st.write(f"**Status:** {config.status}")
-
-        # Show all data sources
+    def _render_data_sources(self, config):
+        """Render data sources information"""
         sources = []
         if config.pdf_file and config.pdf_pages:
             sources.append(
@@ -857,3 +618,578 @@ class ResultsDisplay:
             st.write("**Custom Instructions:**")
             st.code(config.custom_instructions)
 
+    def _render_product_info_tab(self, result):
+        """Render formatted product information"""
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.write("**Basic Information:**")
+            st.write(f"• **Brand:** {self._get_brand_from_result(result)}")
+            st.write(f"• **Product:** {self._get_product_name_from_result(result)}")
+            st.write(f"• **Type:** {result.get('product_type', 'N/A')}")
+            st.write(f"• **EAN:** {result.get('EAN', 'N/A')}")
+
+            # HScode using the imported function
+            hscode = get_hscode_from_product_data(result) or "N/A"
+            st.write(f"• **HScode:** {hscode}")
+
+        with col2:
+            st.write("**Pricing & Details:**")
+            price = self._format_price_display(result)
+            st.write(f"• **Price:** {price}")
+            size = self._format_size_display(result)
+            st.write(f"• **Size:** {size}")
+
+            # Additional fields
+            if result.get("description"):
+                st.write(f"• **Description:** {result.get('description')[:100]}...")
+
+    def render_minimalist_results(self, all_configs):
+        """Render minimalist results list with PHASE 3 user attribution (no filtering)"""
+        if not all_configs:
+            return
+
+        # Show all results: completed, failed, and processing with product numbers
+        for i, config in enumerate(all_configs):
+            product_num = i + 1  # Product numbering starts from 1
+
+            if config.has_successful_attempt():
+                latest_attempt = config.get_latest_attempt()
+                result = latest_attempt.result
+
+                brand = self._get_brand_from_result(result)
+                product_name = self._get_product_name_from_result(result)
+
+                # Get evaluation data for quality badge
+                try:
+                    from evaluations.evaluation_core import get_evaluation_for_config
+                    from evaluations.evaluation_ui import render_quality_badge
+
+                    evaluation = get_evaluation_for_config(config.id)
+                    quality_badge = render_quality_badge(evaluation)
+                except (ImportError, Exception):
+                    quality_badge = ""
+
+                # PHASE 3: Get creator info
+                creator_info = self._format_creator_info(config)
+
+                # Compact successful result display with product number, quality, and creator
+                col1, col2 = st.columns([4, 1])
+                with col1:
+                    success_text = f"Product {product_num}: ✅ {brand} - {product_name}"
+                    if quality_badge:
+                        success_text += f" | {quality_badge}"
+                    # PHASE 3: Add creator info
+                    success_text += f" | {creator_info}"
+                    st.success(success_text, icon="✅")
+                with col2:
+                    if st.button("👁️", key=f"view_min_{config.id}", help="View details"):
+                        toggle_key = f"minimalist_expanded_{config.id}"
+                        st.session_state[toggle_key] = not st.session_state.get(
+                            toggle_key, False
+                        )
+
+                # Show details if expanded - ENHANCED AI REASONING SECTION
+                if st.session_state.get(f"minimalist_expanded_{config.id}", False):
+                    with st.container():
+
+                        # PHASE 3: CREATOR INFORMATION (FIRST)
+                        st.markdown("**👤 Creator Information**")
+                        creator_col1, creator_col2 = st.columns(2)
+
+                        with creator_col1:
+                            username = getattr(config, "created_by_username", "unknown")
+                            user_name = getattr(
+                                config, "created_by_name", "Unknown User"
+                            )
+                            st.write(f"**Created by:** {user_name}")
+                            st.write(f"**Username:** {username}")
+
+                        with creator_col2:
+                            created_at = getattr(config, "created_at", None)
+                            if created_at:
+                                st.write(
+                                    f"**Created:** {created_at.strftime('%Y-%m-%d %H:%M')}"
+                                )
+
+                        st.markdown("---")
+
+                        # ============================================
+                        # JSON DROPDOWN (SECOND)
+                        # ============================================
+                        with st.expander("📄 View JSON Data", expanded=False):
+                            st.json(result)
+
+                        # ============================================
+                        # HUMAN EVALUATION (THIRD) - MOVED UP
+                        # ============================================
+                        st.markdown("**👥 Human Feedback**")
+                        try:
+                            from evaluations.evaluation_core import (
+                                get_evaluation_for_config,
+                            )
+                            from evaluations.evaluation_ui import (
+                                _render_human_feedback_section,
+                            )
+
+                            evaluation = get_evaluation_for_config(config.id)
+                            if evaluation:
+                                _render_human_feedback_section(evaluation)
+                            else:
+                                st.info(
+                                    "Complete an AI evaluation first to provide human feedback"
+                                )
+
+                        except (ImportError, Exception):
+                            st.info("Human feedback system not available")
+
+                        st.markdown("---")
+
+                        # ============================================
+                        # AI EVALUATION RESULTS (FOURTH) - MOVED DOWN
+                        # ============================================
+                        st.markdown("**🧠 AI Quality Evaluation**")
+                        try:
+                            from evaluations.evaluation_core import (
+                                get_evaluation_for_config,
+                            )
+                            from evaluations.evaluation_ui import (
+                                render_evaluation_details,
+                            )
+
+                            evaluation = get_evaluation_for_config(config.id)
+                            if evaluation:
+                                # Show evaluation scores in metrics - FIXED CONTENT SCORE FIELD
+                                eval_col1, eval_col2, eval_col3, eval_col4 = st.columns(
+                                    4
+                                )
+
+                                with eval_col1:
+                                    st.metric(
+                                        "Structure",
+                                        f"{evaluation.get('structure_score', 0)}/5",
+                                    )
+                                with eval_col2:
+                                    # FIX: Try multiple possible field names for content score
+                                    content_score = evaluation.get(
+                                        "content_score", 0
+                                    ) or evaluation.get("accuracy_score", 0)
+                                    st.metric("Content", f"{content_score}/5")
+                                with eval_col3:
+                                    st.metric(
+                                        "Translation",
+                                        f"{evaluation.get('translation_score', 0)}/5",
+                                    )
+                                with eval_col4:
+                                    overall = evaluation.get("overall_score", 0)
+                                    st.metric("Overall", f"{overall}/5")
+
+                                # Show detailed evaluation with reasoning
+                                with st.expander(
+                                    "🤔 AI Assessment Details", expanded=False
+                                ):
+                                    reasoning = evaluation.get("llm_reasoning", "")
+                                    if reasoning:
+                                        # Parse reasoning into components
+                                        parsed_reasoning = self._parse_ai_reasoning(
+                                            reasoning
+                                        )
+
+                                        st.markdown("**Detailed AI Analysis:**")
+
+                                        st.markdown("**📐 Structure Assessment:**")
+                                        st.write(
+                                            parsed_reasoning.get(
+                                                "structure",
+                                                "No structure reasoning available",
+                                            )
+                                        )
+
+                                        st.markdown("**📝 Content Assessment:**")
+                                        st.write(
+                                            parsed_reasoning.get(
+                                                "content",
+                                                "No content reasoning available",
+                                            )
+                                        )
+
+                                        st.markdown("**🗣️ Translation Assessment:**")
+                                        st.write(
+                                            parsed_reasoning.get(
+                                                "translation",
+                                                "No translation reasoning available",
+                                            )
+                                        )
+                                    else:
+                                        st.info(
+                                            "No detailed reasoning available for this evaluation"
+                                        )
+
+                                    # Show evaluation metadata
+                                    st.markdown("**📋 Evaluation Details:**")
+                                    st.write(
+                                        f"• **Model Used:** {evaluation.get('evaluation_model', 'Unknown')}"
+                                    )
+                                    st.write(
+                                        f"• **Evaluated:** {evaluation.get('created_at', 'Unknown')}"
+                                    )
+                                    st.write(
+                                        f"• **Product Type:** {evaluation.get('product_type', 'Unknown')}"
+                                    )
+
+                            else:
+                                st.info(
+                                    "🤖 No AI quality evaluation available for this product"
+                                )
+
+                        except (ImportError, Exception) as e:
+                            st.info("AI evaluation system not available")
+
+                        st.markdown("---")
+
+                        # ============================================
+                        # EXPORT OPTIONS (LAST)
+                        # ============================================
+                        # st.markdown("**📤 Export Options**")
+                        # export_col1, export_col2 = st.columns(2)
+
+                        # with export_col1:
+                        #    self.export_buttons.render_json_download_button_compact(
+                        #        result, config.id
+                        #    )
+
+                        # with export_col2:
+                        #    self.export_buttons.render_dropbox_upload_button_compact(
+                        #        result, config.id
+                        #    )
+
+                        # st.markdown("---")
+
+            elif config.status == "failed":
+                # PHASE 3: Add creator info to failed products
+                failed_preview = self._get_failed_product_preview(config)
+                creator_info = self._format_creator_info(config)
+
+                col1, col2 = st.columns([4, 1])
+                with col1:
+                    # PHASE 3: Include creator info
+                    st.error(
+                        f"Product {product_num}: ❌ {failed_preview} | {creator_info}",
+                        icon="❌",
+                    )
+                with col2:
+                    if st.button(
+                        "👁️", key=f"view_failed_{config.id}", help="View error details"
+                    ):
+                        toggle_key = f"failed_expanded_{config.id}"
+                        st.session_state[toggle_key] = not st.session_state.get(
+                            toggle_key, False
+                        )
+
+                # Show error details ONLY when expanded
+                if st.session_state.get(f"failed_expanded_{config.id}", False):
+                    with st.container():
+                        st.markdown("**❌ Error Details**")
+                        error_message = getattr(
+                            config, "error_message", "No error details available"
+                        )
+                        st.code(error_message)
+
+                        # Show data sources for context
+                        self._render_data_sources(config)
+                        st.markdown("---")
+
+            else:
+                # PHASE 3: Add creator info to pending products
+                creator_info = self._format_creator_info(config)
+
+                col1, col2 = st.columns([4, 1])
+                with col1:
+                    # PHASE 3: Include creator info
+                    st.info(
+                        f"Product {product_num}: ⏳ Processing... | {creator_info}",
+                        icon="⏳",
+                    )
+                with col2:
+                    # Show data sources button for pending products
+                    if st.button(
+                        "👁️", key=f"view_pending_{config.id}", help="View sources"
+                    ):
+                        toggle_key = f"pending_expanded_{config.id}"
+                        st.session_state[toggle_key] = not st.session_state.get(
+                            toggle_key, False
+                        )
+
+                # Show data sources ONLY when expanded
+                if st.session_state.get(f"pending_expanded_{config.id}", False):
+                    with st.container():
+                        self._render_data_sources(config)
+                        st.markdown("---")
+
+    def render_config_list(self, configs):
+        """Render list of configurations (for configuration management)"""
+        if not configs:
+            st.info(
+                "No configurations found. Use the form above to add your first configuration."
+            )
+            return
+
+        st.write(f"Total configurations: {len(configs)}")
+
+        # Display each configuration
+        for i, config in enumerate(configs):
+            with st.container():
+                config_key = f"config_expanded_{config.id}"
+                if config_key not in st.session_state:
+                    st.session_state[config_key] = False
+
+                col1, col2, col3 = st.columns([8, 1, 1])
+
+                with col1:
+                    source_summary = getattr(
+                        config, "source_summary", lambda: "No sources"
+                    )()
+                    st.write(f"**Product {i+1}:** {source_summary}")
+
+                with col2:
+                    if st.button(
+                        "👁️", key=f"view_config_{config.id}", help="View details"
+                    ):
+                        st.session_state[config_key] = not st.session_state[config_key]
+
+                with col3:
+                    if st.button("🗑️", key=f"remove_{config.id}", help="Remove"):
+                        # Import the remove function when needed
+                        from utils.product_config import remove_product_config
+
+                        remove_product_config(config.id)
+                        st.rerun()
+
+                # Show details if toggled
+                if st.session_state[config_key]:
+                    st.write(f"**Product Type:** {config.product_type}")
+                    st.write(
+                        f"**Model:** {config.model_provider} / {config.model_name}"
+                    )
+                    st.write(f"**Status:** {config.status}")
+                    self._render_data_sources(config)
+
+                st.markdown("---")
+
+    def _get_brand_from_result(self, result):
+        """Extract brand name from result with fallback logic"""
+        for field in ["brand", "Brand", "BRAND"]:
+            # Check catalogA/catalogB structure
+            for catalog in ["catalogA", "catalogB"]:
+                if catalog in result and isinstance(result[catalog], dict):
+                    value = result[catalog].get(field)
+                    if (
+                        value
+                        and value.strip()
+                        and value.lower() not in ["", "null", "none", "unknown"]
+                    ):
+                        return value.strip()
+
+            # Handle flat structure
+            value = result.get(field)
+            if (
+                value
+                and value.strip()
+                and value.lower() not in ["", "null", "none", "unknown"]
+            ):
+                return value.strip()
+
+        return "Unknown"
+
+    def _get_product_name_from_result(self, result):
+        """Extract product name from result with fallback logic"""
+        # Try different field names in order of preference
+        name_fields = [
+            "itemDescriptionEN",  # For cosmetics and subtype
+            "product_name",  # For fragrance
+            "product_title_EN",  # Alternative from catalogA
+            "itemDescriptionPT",  # Portuguese fallback
+            "product_title_PT",  # Portuguese fallback
+        ]
+
+        for field in name_fields:
+            # Handle nested catalogB structure
+            if "catalogB" in result and isinstance(result["catalogB"], dict):
+                value = result["catalogB"].get(field)
+                if (
+                    value
+                    and value.strip()
+                    and value.lower() not in ["", "null", "none", "unknown"]
+                ):
+                    return value.strip()
+
+            # Check catalogA/catalogB structure
+            for catalog in ["catalogA", "catalogB"]:
+                if catalog in result and isinstance(result[catalog], dict):
+                    value = result[catalog].get(field)
+                    if (
+                        value
+                        and value.strip()
+                        and value.lower() not in ["", "null", "none", "unknown"]
+                    ):
+                        return value.strip()
+
+            # Handle flat structure
+            value = result.get(field)
+            if (
+                value
+                and value.strip()
+                and value.lower() not in ["", "null", "none", "unknown"]
+            ):
+                return value.strip()
+
+        return "Unknown Product"
+
+    def _get_failed_product_preview(self, config):
+        """Get a preview name for a failed product configuration"""
+        try:
+            # Try to extract a preview from the sources
+            if config.pdf_file:
+                return f"PDF: {config.pdf_file.name[:25]}..."
+            elif config.excel_file:
+                return f"Excel: {config.excel_file.name[:25]}..."
+            elif config.website_url:
+                url = config.website_url.split(",")[0].strip()
+                if len(url) > 30:
+                    url = url[:27] + "..."
+                return f"Web: {url}"
+            else:
+                return f"{config.product_type.title()} Product"
+        except:
+            return f"{config.product_type.title()} Product"
+
+    def _format_creator_info(self, config) -> str:
+        """
+        PHASE 3: Format creator information for display.
+
+        Args:
+            config: Product configuration object
+
+        Returns:
+            str: Formatted creator information
+        """
+        try:
+            if hasattr(config, "creator_summary"):
+                return config.creator_summary()
+            elif hasattr(config, "created_by_username"):
+                username = getattr(config, "created_by_username", "unknown")
+                user_name = getattr(config, "created_by_name", "Unknown User")
+                if username != "system" and username != "unknown":
+                    return f"Created by: {user_name} ({username})"
+                else:
+                    return "Created by: System"
+            else:
+                return "Creator: Unknown"
+        except:
+            return "Creator: Unknown"
+
+    def _format_price_display(self, result):
+        """Format price for display"""
+        price_fields = ["price", "Price", "cost", "Cost"]
+        for field in price_fields:
+            for catalog in ["catalogA", "catalogB"]:
+                if catalog in result and isinstance(result[catalog], dict):
+                    value = result[catalog].get(field)
+                    if value and str(value).strip():
+                        return str(value).strip()
+
+            value = result.get(field)
+            if value and str(value).strip():
+                return str(value).strip()
+
+        return "N/A"
+
+    def _format_size_display(self, result):
+        """Format size/volume for display"""
+        size_fields = ["size", "Size", "volume", "Volume", "weight", "Weight"]
+        for field in size_fields:
+            for catalog in ["catalogA", "catalogB"]:
+                if catalog in result and isinstance(result[catalog], dict):
+                    value = result[catalog].get(field)
+                    if value and str(value).strip():
+                        return str(value).strip()
+
+            value = result.get(field)
+            if value and str(value).strip():
+                return str(value).strip()
+
+        return "N/A"
+
+    def _render_product_overview(self, result):
+        """Render a brief product overview"""
+        brand = self._get_brand_from_result(result)
+        product_name = self._get_product_name_from_result(result)
+        price = self._format_price_display(result)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write(f"**{brand}**")
+            st.write(product_name)
+        with col2:
+            st.write(f"**Price:** {price}")
+            st.write(f"**Type:** {result.get('product_type', 'N/A')}")
+
+    def render_disabled_reprocess_toggle(self, config_id):
+        """Render a disabled reprocess toggle button"""
+        st.button(
+            "🔄",
+            key=f"disabled_reprocess_{config_id}",
+            disabled=True,
+            label_visibility="collapsed",
+        )
+
+    def render_minimalist_bulk_export(self, completed_configs):
+        """Render minimalist bulk export options - called from execute_tab.py"""
+        if not completed_configs:
+            return
+
+        st.subheader("📤 Export All Results")
+
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            # All as JSON button (single file)
+            all_results = [
+                config.get_latest_attempt().result for config in completed_configs
+            ]
+            json_data, filename = (
+                self.export_buttons.export_handler.export_products_as_json(
+                    all_results, "all_extracted_products.json"
+                )
+            )
+            st.download_button(
+                "📄 Download All as JSON",
+                data=json_data,
+                file_name=filename,
+                mime="application/json",
+                use_container_width=True,
+                help="Download all products in a single JSON file",
+            )
+
+        with col2:
+            # Individual JSON files as ZIP
+            self.export_buttons._render_individual_json_export_button(completed_configs)
+
+        with col3:
+            # All to Dropbox button
+            if self.export_buttons.export_handler.dropbox_available:
+                if st.button(
+                    "☁️ Upload All to Dropbox",
+                    use_container_width=True,
+                    help="Upload all completed products to Dropbox",
+                ):
+                    self.export_buttons.export_handler.bulk_upload_to_dropbox(
+                        completed_configs
+                    )
+            else:
+                st.button(
+                    "☁️ Dropbox N/A",
+                    disabled=True,
+                    use_container_width=True,
+                    help="Dropbox integration not available",
+                )
