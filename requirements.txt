@@ -42,6 +42,15 @@ dropbox>=12.0.0
 lxml>=4.9.0
 html5lib>=1.1
 
-# Optional: Web Loader Dependencies
-lxml>=4.9.0
-html5lib>=1.1
+# Evaluation System Dependencies (POC)
+plotly>=5.15.0                  # For analytics dashboard 
+statsmodels
+
+# ================================
+# PostgreSQL Support for Supabase
+# ================================
+psycopg2-binary>=2.9.0         # PostgreSQL adapter for Python
+sqlalchemy>=2.0.0              # SQL toolkit (optional but recommended)
+
+hashlib
+
