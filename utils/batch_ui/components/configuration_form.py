@@ -228,7 +228,9 @@ class ConfigurationForm:
         # Display the page image
         try:
             page_image_data = page_data[1]  # (page_number, image_bytes)
-            st.image(page_image_data, caption=f"Page {page_num}", use_column_width=True)
+            st.image(
+                page_image_data, caption=f"Page {page_num}", use_container_width=True
+            )
         except Exception as e:
             st.error(f"Error loading page {page_num}")
             return
