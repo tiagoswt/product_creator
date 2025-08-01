@@ -854,9 +854,497 @@ class EvaluationDB:
             },
         }
 
+    # Check if production_model_id column exists
+    def _production_model_column_exists(self) -> bool:
+        """Check if production_model_id column exists in evaluations table."""
+        try:
+            columns_query = """
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'evaluations' 
+            AND column_name = 'production_model_id'
+            """
+            existing_columns = run_cached_query(columns_query)
+            return len(existing_columns) > 0
+        except Exception:
+            return False
+
+    # Get or create production model (works with your existing table)
+    def get_or_create_production_model(
+        self, provider: str, model_name: str, temperature: float
+    ) -> int:
+        """
+        Get or create a production model configuration.
+        Returns the production_model_id.
+        """
+        try:
+            # First, try to find existing model
+            query = """
+            SELECT id FROM production_models 
+            WHERE provider = %s AND model_name = %s AND temperature = %s
+            """
+
+            result = run_cached_query(query, (provider, model_name, temperature))
+
+            if result:
+                return result[0]["id"]
+
+            # If not found, create new one
+            insert_query = """
+            INSERT INTO production_models (provider, model_name, temperature)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (provider, model_name, temperature) DO UPDATE SET
+                provider = EXCLUDED.provider
+            RETURNING id
+            """
+
+            insert_result = run_write_query(
+                insert_query, (provider, model_name, temperature), fetch_result=True
+            )
+
+            if insert_result:
+                run_cached_query.clear()  # Clear cache after insert
+                return insert_result["id"]
+
+            return None
+
+        except Exception as e:
+            st.error(f"Error getting/creating production model: {str(e)}")
+            return None
+
+    def _ensure_production_model_tracking_table(self):
+        """Create temporary tracking table for production models until column is added."""
+        try:
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS evaluation_production_models (
+                id SERIAL PRIMARY KEY,
+                evaluation_id INTEGER,
+                production_model_id INTEGER REFERENCES production_models(id),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(evaluation_id)
+            )
+            """
+            run_write_query(create_table_query)
+
+            # Add index
+            index_query = """
+            CREATE INDEX IF NOT EXISTS idx_eval_prod_models_eval_id 
+            ON evaluation_production_models(evaluation_id)
+            """
+            run_write_query(index_query)
+
+        except Exception as e:
+            st.warning(f"Could not create production model tracking table: {str(e)}")
+
+    # METHOD 4: REPLACE your existing store_openevals_evaluation method with this:
+    def store_openevals_evaluation(
+        self,
+        product_config_id: str,
+        openevals_results: Dict,
+        product_type: str,
+        input_text: str = "",
+        extracted_json: Dict = None,
+        user_id: str = None,
+        username: str = None,
+        user_name: str = None,
+        production_model_provider: str = None,
+        production_model_name: str = None,
+        production_temperature: float = None,
+    ) -> int:
+        """Store OpenEvals results with flexible production model tracking."""
+
+        # FIXED: Validate and ensure we have proper input data
+        if not input_text or not input_text.strip():
+            input_text = f"OpenEvals evaluation for {product_type} product"
+
+        if not extracted_json:
+            extracted_json = {"error": "No extracted JSON available"}
+
+        # Extract scores from OpenEvals results
+        structure_score = openevals_results.get("structure_correctness", {}).get(
+            "score", 3
+        )
+        content_score = openevals_results.get("content_correctness", {}).get("score", 3)
+        translation_score = openevals_results.get("translation_correctness", {}).get(
+            "score", 3
+        )
+        overall_score = openevals_results.get("overall_score", 3.0)
+
+        # Validate scores are in 1-5 range
+        structure_score = max(1, min(5, int(structure_score)))
+        content_score = max(1, min(5, int(content_score)))
+        translation_score = max(1, min(5, int(translation_score)))
+        overall_score = max(1.0, min(5.0, float(overall_score)))
+
+        # Extract brand and product name from JSON
+        brand = extract_brand_from_json(extracted_json)
+        product_name = extract_product_name_from_json(extracted_json)
+
+        # Get user context from session state if not provided
+        if not user_id and "current_user" in st.session_state:
+            current_user = st.session_state["current_user"]
+            user_id = current_user.get("id")
+            username = current_user.get("username", "unknown")
+            user_name = current_user.get("name", "Unknown User")
+
+        # Default values for user attribution
+        user_id = user_id or None
+        username = username or "system"
+        user_name = user_name or "System"
+
+        # Get production model info
+        import config
+
+        final_provider = production_model_provider or config.DEFAULT_PROVIDER
+        final_model = production_model_name or config.DEFAULT_MODEL
+        final_temp = (
+            production_temperature
+            if production_temperature is not None
+            else config.DEFAULT_TEMPERATURE
+        )
+
+        # Create reasoning from all metrics
+        reasoning_parts = []
+        for metric_name, metric_data in openevals_results.items():
+            if isinstance(metric_data, dict) and "reasoning" in metric_data:
+                reasoning_parts.append(f"{metric_name}: {metric_data['reasoning']}")
+
+        llm_reasoning = (
+            " | ".join(reasoning_parts)
+            if reasoning_parts
+            else "OpenEvals 3-metric evaluation completed"
+        )
+
+        # Add evaluation metadata
+        eval_time = openevals_results.get("evaluation_time", 0)
+        evaluation_model = f"openevals/gpt-4o-mini (Time: {eval_time:.2f}s)"
+
+        # Check if production_model_id column exists in evaluations table
+        has_production_column = self._production_model_column_exists()
+
+        if has_production_column:
+            # IDEAL: Use production_model_id column directly
+            production_model_id = self.get_or_create_production_model(
+                final_provider, final_model, final_temp
+            )
+
+            query = """
+            INSERT INTO evaluations (
+                product_config_id, input_text, extracted_json,
+                structure_score, accuracy_score, translation_score, overall_score,
+                llm_reasoning, evaluation_model, product_type, brand, product_name,
+                user_id, created_by_username, created_by_name, production_model_id
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+            """
+
+            params = (
+                product_config_id,
+                input_text,
+                json.dumps(extracted_json, ensure_ascii=False),
+                structure_score,
+                content_score,
+                translation_score,
+                overall_score,
+                llm_reasoning,
+                evaluation_model,
+                product_type,
+                brand,
+                product_name,
+                user_id,
+                username,
+                user_name,
+                production_model_id,
+            )
+
+            success_msg = f"✅ Stored OpenEvals evaluation for: {brand} - {product_name} (Created by: {username}, Model: {final_provider}/{final_model})"
+
+        else:
+            # FALLBACK: Store evaluation normally, track production model separately
+            query = """
+            INSERT INTO evaluations (
+                product_config_id, input_text, extracted_json,
+                structure_score, accuracy_score, translation_score, overall_score,
+                llm_reasoning, evaluation_model, product_type, brand, product_name,
+                user_id, created_by_username, created_by_name
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+            """
+
+            params = (
+                product_config_id,
+                input_text,
+                json.dumps(extracted_json, ensure_ascii=False),
+                structure_score,
+                content_score,
+                translation_score,
+                overall_score,
+                llm_reasoning,
+                evaluation_model,
+                product_type,
+                brand,
+                product_name,
+                user_id,
+                username,
+                user_name,
+            )
+
+            success_msg = f"✅ Stored OpenEvals evaluation for: {brand} - {product_name} (Created by: {username}, Model: {final_provider}/{final_model}) [Separate tracking]"
+
+        # Store the evaluation
+        result = run_write_query(query, params, fetch_result=True)
+        run_cached_query.clear()
+
+        if result and not has_production_column:
+            # Store production model info in separate tracking table
+            evaluation_id = result["id"]
+
+            # Ensure tracking table exists
+            self._ensure_production_model_tracking_table()
+
+            # Get or create production model
+            production_model_id = self.get_or_create_production_model(
+                final_provider, final_model, final_temp
+            )
+
+            if production_model_id:
+                # Store the relationship in tracking table
+                tracking_query = """
+                INSERT INTO evaluation_production_models (evaluation_id, production_model_id)
+                VALUES (%s, %s)
+                ON CONFLICT (evaluation_id) DO UPDATE SET
+                    production_model_id = EXCLUDED.production_model_id
+                """
+
+                try:
+                    run_write_query(
+                        tracking_query, (evaluation_id, production_model_id)
+                    )
+                except Exception as e:
+                    st.warning(f"Could not store production model tracking: {str(e)}")
+
+        if result:
+            st.info(success_msg)
+
+        return result["id"] if result else None
+
+    # METHOD 5: REPLACE your existing store_evaluation method with this:
+    def store_evaluation(
+        self,
+        product_config_id: str,
+        input_text: str,
+        extracted_json: Dict,
+        scores: Dict[str, float],
+        llm_reasoning: str,
+        evaluation_model: str,
+        product_type: str,
+        user_id: str = None,
+        username: str = None,
+        user_name: str = None,
+        production_model_provider: str = None,
+        production_model_name: str = None,
+        production_temperature: float = None,
+    ) -> int:
+        """Store evaluation with flexible production model tracking."""
+
+        # Extract brand and product name from JSON
+        brand = extract_brand_from_json(extracted_json)
+        product_name = extract_product_name_from_json(extracted_json)
+
+        # Get user context from session state if not provided
+        if not user_id and "current_user" in st.session_state:
+            current_user = st.session_state["current_user"]
+            user_id = current_user.get("id")
+            username = current_user.get("username", "unknown")
+            user_name = current_user.get("name", "Unknown User")
+
+        # Default values for user attribution
+        user_id = user_id or None
+        username = username or "system"
+        user_name = user_name or "System"
+
+        # Get production model info
+        import config
+
+        final_provider = production_model_provider or config.DEFAULT_PROVIDER
+        final_model = production_model_name or config.DEFAULT_MODEL
+        final_temp = (
+            production_temperature
+            if production_temperature is not None
+            else config.DEFAULT_TEMPERATURE
+        )
+
+        # Check if production_model_id column exists
+        has_production_column = self._production_model_column_exists()
+
+        if has_production_column:
+            # IDEAL: Use production_model_id column directly
+            production_model_id = self.get_or_create_production_model(
+                final_provider, final_model, final_temp
+            )
+
+            query = """
+            INSERT INTO evaluations (
+                product_config_id, input_text, extracted_json,
+                structure_score, accuracy_score, translation_score, overall_score,
+                llm_reasoning, evaluation_model, product_type, brand, product_name,
+                user_id, created_by_username, created_by_name, production_model_id
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+            """
+
+            params = (
+                product_config_id,
+                input_text[:100000],
+                json.dumps(extracted_json, ensure_ascii=False),
+                scores.get("structure_score", 3),
+                scores.get("accuracy_score", 3),
+                scores.get("translation_score", 3),
+                scores.get("overall_score", 3.0),
+                llm_reasoning or "No reasoning provided",
+                evaluation_model or "Unknown model",
+                product_type,
+                brand,
+                product_name,
+                user_id,
+                username,
+                user_name,
+                production_model_id,
+            )
+
+            success_msg = f"✅ Stored evaluation for: {brand} - {product_name} (Created by: {username}, Model: {final_provider}/{final_model})"
+
+        else:
+            # FALLBACK: Store evaluation normally, track production model separately
+            query = """
+            INSERT INTO evaluations (
+                product_config_id, input_text, extracted_json,
+                structure_score, accuracy_score, translation_score, overall_score,
+                llm_reasoning, evaluation_model, product_type, brand, product_name,
+                user_id, created_by_username, created_by_name
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+            """
+
+            params = (
+                product_config_id,
+                input_text[:100000],
+                json.dumps(extracted_json, ensure_ascii=False),
+                scores.get("structure_score", 3),
+                scores.get("accuracy_score", 3),
+                scores.get("translation_score", 3),
+                scores.get("overall_score", 3.0),
+                llm_reasoning or "No reasoning provided",
+                evaluation_model or "Unknown model",
+                product_type,
+                brand,
+                product_name,
+                user_id,
+                username,
+                user_name,
+            )
+
+            success_msg = f"✅ Stored evaluation for: {brand} - {product_name} (Created by: {username}, Model: {final_provider}/{final_model}) [Separate tracking]"
+
+        # Store the evaluation
+        result = run_write_query(query, params, fetch_result=True)
+        run_cached_query.clear()
+
+        if result and not has_production_column:
+            # Store production model info in separate tracking table
+            evaluation_id = result["id"]
+
+            # Ensure tracking table exists
+            self._ensure_production_model_tracking_table()
+
+            # Get or create production model
+            production_model_id = self.get_or_create_production_model(
+                final_provider, final_model, final_temp
+            )
+
+            if production_model_id:
+                # Store the relationship
+                tracking_query = """
+                INSERT INTO evaluation_production_models (evaluation_id, production_model_id)
+                VALUES (%s, %s)
+                ON CONFLICT (evaluation_id) DO UPDATE SET
+                    production_model_id = EXCLUDED.production_model_id
+                """
+
+                try:
+                    run_write_query(
+                        tracking_query, (evaluation_id, production_model_id)
+                    )
+                except Exception as e:
+                    st.warning(f"Could not store production model tracking: {str(e)}")
+
+        if result:
+            st.info(success_msg)
+
+        return result["id"] if result else None
+
+    # METHOD 6: ADD this method for analytics (handles both approaches)
+    def get_evaluations_with_production_models(self, limit: int = 50) -> List[Dict]:
+        """Get evaluations with production model info, handling both column and separate table approaches."""
+
+        has_production_column = self._production_model_column_exists()
+
+        if has_production_column:
+            # Use direct JOIN with production_model_id column
+            query = """
+            SELECT 
+                e.*,
+                pm.provider as production_model_provider,
+                pm.model_name as production_model_name,
+                pm.temperature as production_temperature,
+                h.human_rating,
+                h.notes as feedback_notes
+            FROM evaluations e
+            LEFT JOIN production_models pm ON e.production_model_id = pm.id
+            LEFT JOIN human_feedback h ON e.id = h.evaluation_id
+            ORDER BY e.created_at DESC
+            LIMIT %s
+            """
+            params = (limit,)
+
+        else:
+            # Use separate tracking table approach
+            query = """
+            SELECT 
+                e.*,
+                pm.provider as production_model_provider,
+                pm.model_name as production_model_name,
+                pm.temperature as production_temperature,
+                h.human_rating,
+                h.notes as feedback_notes
+            FROM evaluations e
+            LEFT JOIN evaluation_production_models epm ON e.id = epm.evaluation_id
+            LEFT JOIN production_models pm ON epm.production_model_id = pm.id
+            LEFT JOIN human_feedback h ON e.id = h.evaluation_id
+            ORDER BY e.created_at DESC
+            LIMIT %s
+            """
+            params = (limit,)
+
+        results = run_cached_query(query, params)
+
+        # Parse JSON fields back to dicts
+        for result in results:
+            if result.get("extracted_json"):
+                try:
+                    result["extracted_json"] = json.loads(result["extracted_json"])
+                except:
+                    result["extracted_json"] = {}
+
+        return results
+
 
 # Global database instance with Streamlit caching
 @st.cache_resource
+def get_db() -> EvaluationDB:
+    """Get or create the global database instance with Streamlit caching."""
+    return EvaluationDB()
+
 def get_db() -> EvaluationDB:
     """Get or create the global database instance with Streamlit caching."""
     return EvaluationDB()
