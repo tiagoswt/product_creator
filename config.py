@@ -8,6 +8,7 @@ GROQ_MODELS = [
     "meta-llama/llama-4-scout-17b-16e-instruct",
     "meta-llama/llama-4-maverick-17b-128e-instruct",
     "llama-3.3-70b-versatile",
+    "openai/gpt-oss-120b",
 ]
 
 OPENAI_MODELS = [
@@ -27,7 +28,7 @@ DEFAULT_PROVIDER = "openai"  # Changed from "groq" to "openai"
 DEFAULT_MODEL = "gpt-4o"  # Set to GPT-4o
 
 # Dedicated model for HScode classification
-HSCODE_MODEL = "deepseek-r1-distill-llama-70b"
+HSCODE_MODEL = "openai/gpt-oss-120b"
 HSCODE_PROVIDER = "groq"
 HSCODE_TEMPERATURE = 0.1
 
@@ -109,3 +110,4 @@ LANGSMITH_EVALUATION_PROJECT = (
 EVALUATION_DATASET_NAME = "product_extraction_evals"
 EVALUATION_DATASET_AUTO_CREATE = True  # Auto-create datasets in LangSmith
 EVALUATION_CACHE_ENABLED = True  # Cache evaluation results for identical inputs
+
