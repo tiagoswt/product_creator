@@ -219,7 +219,7 @@ def _render_human_feedback_section(evaluation: Dict):
     feedback_notes = st.text_area(
         "Optional Notes",
         placeholder="Any specific observations about the extraction quality...",
-        max_chars=500,
+        max_chars=100000,
         key=f"feedback_notes_{evaluation_id}",
     )
 
