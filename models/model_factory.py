@@ -1,33 +1,40 @@
+import os
 import streamlit as st
-from models.groq_model import get_groq_llm
-from models.openai_model import get_openai_llm
+from langchain_groq import ChatGroq
 import config
 
 
-def get_llm(
-    model_name=None,
-    temperature=config.DEFAULT_TEMPERATURE,
-    provider=config.DEFAULT_PROVIDER,
+def get_groq_llm(
+    model_name=config.DEFAULT_GROQ_MODEL, temperature=config.DEFAULT_TEMPERATURE
 ):
     """
-    Factory function to get the appropriate LLM based on provider
+    Initialize and return a ChatGroq instance
 
     Args:
-        model_name (str): Name of the model to use
+        model_name (str): Name of the Groq model to use
         temperature (float): Temperature parameter for generation
-        provider (str): Provider of the LLM ("groq" or "openai")
 
     Returns:
-        LLM: Initialized LLM instance from the appropriate provider
+        ChatGroq: Initialized ChatGroq instance or None if API key is not available
     """
-    if provider == "groq":
-        if model_name is None:
-            model_name = config.DEFAULT_GROQ_MODEL
-        return get_groq_llm(model_name, temperature)
-    elif provider == "openai":
-        if model_name is None:
-            model_name = config.DEFAULT_OPENAI_MODEL
-        return get_openai_llm(model_name, temperature)
-    else:
-        st.error(f"Unknown provider: {provider}")
-        return None
+    # Try to load from environment variables directly
+    api_key = os.getenv(config.ENV_GROQ_API_KEY)
+
+    # If API key is not found in environment, prompt the user
+    if not api_key:
+        api_key = st.sidebar.text_input(
+            "Enter your Groq API Key", type="password", key="groq_api_key_input"
+        )
+        if not api_key:
+            st.error("No Groq API key provided. Please enter your Groq API key.")
+            return None
+
+        # Store the API key in session state for future use
+        st.session_state[config.STATE_GROQ_API_KEY] = api_key
+
+    # Return the ChatGroq instance
+    return ChatGroq(
+        api_key=api_key,
+        model_name=model_name,
+        temperature=temperature,
+    )
