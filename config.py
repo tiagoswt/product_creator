@@ -1,4 +1,5 @@
 # Configuration file for the E-commerce Product Extractor
+# PHASE 3: Updated with OpenEvals integration settings
 
 # LLM Models
 GROQ_MODELS = [
@@ -12,20 +13,20 @@ GROQ_MODELS = [
 ]
 
 OPENAI_MODELS = [
-    "gpt-3.5-turbo",
-    "gpt-4",
+    "gpt-4.1-mini-2025-04-14",
+    "gpt-4o-mini-2024-07-18",
     "gpt-4-turbo",
     "gpt-4o",
 ]
 
 # Default settings - Changed to GPT-4o and temperature 0.4
 DEFAULT_GROQ_MODEL = "meta-llama/llama-4-maverick-17b-128e-instruct"
-DEFAULT_OPENAI_MODEL = "gpt-4o"
+DEFAULT_OPENAI_MODEL = "gpt-4o-mini-2024-07-18"
 DEFAULT_TEMPERATURE = 0.4
 
 # Default provider and model for new configurations
 DEFAULT_PROVIDER = "openai"  # Changed from "groq" to "openai"
-DEFAULT_MODEL = "gpt-4o"  # Set to GPT-4o
+DEFAULT_MODEL = "gpt-4o-mini-2024-07-18"  # Set to GPT-4o
 
 # Dedicated model for HScode classification
 HSCODE_MODEL = "openai/gpt-oss-120b"
@@ -65,9 +66,6 @@ ENV_DROPBOX_ACCESS_TOKEN = "DROPBOX_ACCESS_TOKEN"
 PDF_TYPE = "pdf"
 EXCEL_TYPES = ["xlsx", "xls"]
 
-# PDF preview settings - Updated for higher resolution
-PDF_PREVIEW_SCALE = 0.8  # Increased from 0.5 for better quality and bigger images
-
 # Dropbox settings - Updated to use the new folder
 DROPBOX_BASE_FOLDER = "/Product_AI_Content_Creator"
 DROPBOX_TIMEOUT = 60  # seconds
@@ -77,10 +75,15 @@ DROPBOX_ADD_TIMESTAMP = True  # Add timestamp to avoid conflicts
 # PDF preview settings - Updated for higher resolution
 PDF_PREVIEW_SCALE = 0.7  # Increased from 0.5 for better quality and bigger images
 
+# ============================================
+# PHASE 3: OpenEvals Integration Configuration
+# ============================================
+
 # Evaluation System Configuration
 EVALUATION_ENABLED = True  # Master switch for evaluation system
 EVALUATION_MODEL = "gpt-4o-mini"  # Cost-effective model for evaluation
 EVALUATION_PROVIDER = "openai"  # Provider for evaluation model
+EVALUATION_DATABASE_PATH = "evaluations/evaluations.db"  # SQLite database location
 
 # PHASE 3: OpenEvals Configuration
 USE_OPENEVALS = True  # MAIN SWITCH: Enable OpenEvals 3-metric evaluator
@@ -111,3 +114,24 @@ EVALUATION_DATASET_NAME = "product_extraction_evals"
 EVALUATION_DATASET_AUTO_CREATE = True  # Auto-create datasets in LangSmith
 EVALUATION_CACHE_ENABLED = True  # Cache evaluation results for identical inputs
 
+# ============================================
+# Legacy OpenEvals Settings (for reference)
+# ============================================
+
+# These settings are kept for backward compatibility but may not be actively used
+# in the current Phase 3 implementation
+
+# Three core evaluation metrics (legacy naming)
+# EVALUATION_METRICS = [
+#     "structure_correctness",  # JSON structure validation
+#     "content_correctness",    # Accuracy vs input, hallucination detection
+#     "translation_correctness", # Portuguese translation quality
+# ]
+
+# Evaluation dataset settings (legacy)
+# EVALUATION_DATASET_NAME = "product_extraction_evals"
+# EVALUATION_DATASET_AUTO_CREATE = True
+
+# OpenEvals feature flags (legacy)
+# OPENEVALS_DEBUG = False
+# EVALUATION_CACHE_ENABLED = True
