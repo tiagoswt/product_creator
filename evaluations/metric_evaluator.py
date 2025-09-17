@@ -72,7 +72,7 @@ class MetricEvaluator:
 
         try:
             if config.OPENEVALS_DEBUG:
-                print(f"🔍 Evaluating {product_type} with fixed evaluator...")
+                print(f"[EVAL] Evaluating {product_type} with fixed evaluator...")
 
             # 1. Structure Correctness - JSON validation with input context
             results["structure_correctness"] = self._evaluate_structure_correctness(
@@ -326,28 +326,36 @@ Respond with ONLY this JSON format:
 
         pairs_text = self._format_translation_pairs(translation_pairs)
 
-        translation_prompt = f"""You are evaluating Portuguese translation quality in product extraction.
+        translation_prompt = f"""You are evaluating Portuguese (PT-PT) translation quality in product extraction from user data sources (CSV, Web, PDF).
 
 TRANSLATION PAIRS FOUND: {pairs_text}
 
-TASK: Rate the Portuguese translation quality (1-5 scale).
+TASK: Evaluate Portuguese translation quality considering ALL 5 criteria and provide a SINGLE final score (1-5 scale).
 
-EVALUATION CRITERIA:
-- Accuracy: Portuguese correctly conveys English meaning
-- Fluency: Natural Portuguese grammar and expression
-- Completeness: All English words translated (except brand names)
-- Consistency: Consistent terminology across translations
-- Cultural appropriateness: Portuguese expressions sound natural
+EVALUATION CRITERIA (consider all 5 when calculating final score):
 
-SCORING:
-5 = Excellent translations - fluent, accurate, natural Portuguese
-4 = Very good translations - minor issues that don't affect comprehension
-3 = Good translations - generally correct with some awkward phrasing
-2 = Poor translations - significant errors affecting meaning or readability
-1 = Very poor translations - major errors, unnatural Portuguese, or missing translations
+1. ACCURACY (Semantic Correctness): Does Portuguese correctly convey English meaning?
+2. FLUENCY (Natural Portuguese Grammar): Natural European Portuguese grammar and expression?
+3. COMPLETENESS (No Missing Translations): All English content translated except brand names?
+4. CONSISTENCY (Terminology Alignment): Consistent terminology across translations?
+5. CULTURAL APPROPRIATENESS (PT-PT Specifics): European Portuguese expressions, not Brazilian?
 
-Respond with ONLY this JSON format:
-{{"score": <1-5>, "feedback": "<specific feedback about translation quality, accuracy, and fluency>"}}"""
+IMPORTANT REQUIREMENTS:
+- Brand names should remain untranslated (e.g., "CeraVe", "L'Oréal")
+- Use European Portuguese (PT-PT), not Brazilian Portuguese
+- Marketing language should sound natural and compelling in Portuguese
+- Technical terms should use standard European Portuguese terminology
+- Product descriptions should be fully translated except brand names
+
+FINAL SCORING (consider all 5 criteria):
+5 = Excellent translations - all criteria met excellently
+4 = Very good translations - minor issues in 1-2 criteria
+3 = Good translations - acceptable with room for improvement
+2 = Poor translations - significant issues in multiple criteria
+1 = Very poor translations - major problems across most criteria
+
+Calculate a single final score considering all 5 criteria and respond with ONLY this JSON format:
+{{"score": <1-5>, "feedback": "<detailed feedback mentioning accuracy, fluency, completeness, consistency, and cultural appropriateness>"}}"""
 
         try:
             # Use direct LLM call instead of evaluator
@@ -436,39 +444,45 @@ Respond with ONLY this JSON format:
             }
 
     def _extract_translation_pairs(self, extracted_json: Dict) -> List[Dict]:
-        """Extract English-Portuguese translation pairs from JSON structure."""
+        """Extract English-Portuguese translation pairs from JSON structure based on cosmetics_prompt.md format."""
         pairs = []
 
         try:
-            # Cosmetics structure (catalogA and catalogB)
-            if "catalogA" in extracted_json:
-                catalog_a = extracted_json["catalogA"]
-                if catalog_a.get("product_title_EN") and catalog_a.get(
-                    "product_title_PT"
-                ):
-                    pairs.append(
-                        {
-                            "english": catalog_a["product_title_EN"],
-                            "portuguese": catalog_a["product_title_PT"],
-                            "field": "product_title",
-                            "location": "catalogA",
-                        }
-                    )
+            # Root level translation pairs (from cosmetics_prompt.md structure)
+            root_pairs = [
+                ('DescriptionEN', 'DescriptionPT'),
+                ('TitleEN', 'TitlePT'),
+                ('UrlEN', 'UrlPT'),
+                ('HowToEN', 'HowToPT')
+            ]
 
-            # Cosmetics/Subtype structure (catalogB)
-            if "catalogB" in extracted_json:
-                catalog_b = extracted_json["catalogB"]
-                if catalog_b.get("itemDescriptionEN") and catalog_b.get(
-                    "itemDescriptionPT"
-                ):
-                    pairs.append(
-                        {
-                            "english": catalog_b["itemDescriptionEN"],
-                            "portuguese": catalog_b["itemDescriptionPT"],
-                            "field": "item_description",
-                            "location": "catalogB",
-                        }
-                    )
+            # Check root level fields
+            for en_field, pt_field in root_pairs:
+                en_value = extracted_json.get(en_field)
+                pt_value = extracted_json.get(pt_field)
+
+                if en_value and pt_value and str(en_value).strip() and str(pt_value).strip():
+                    pairs.append({
+                        "english": str(en_value).strip(),
+                        "portuguese": str(pt_value).strip(),
+                        "field": en_field.replace('EN', ''),
+                        "location": "root"
+                    })
+
+            # Check Subtypes array for ItemDescription pairs
+            if 'Subtypes' in extracted_json and isinstance(extracted_json['Subtypes'], list):
+                for i, subtype in enumerate(extracted_json['Subtypes']):
+                    if isinstance(subtype, dict):
+                        en_value = subtype.get('ItemDescriptionEN')
+                        pt_value = subtype.get('ItemDescriptionPT')
+
+                        if en_value and pt_value and str(en_value).strip() and str(pt_value).strip():
+                            pairs.append({
+                                "english": str(en_value).strip(),
+                                "portuguese": str(pt_value).strip(),
+                                "field": "ItemDescription",
+                                "location": f"Subtypes[{i}]"
+                            })
 
         except Exception as e:
             print(f"Error extracting translation pairs: {str(e)}")
@@ -538,7 +552,7 @@ Respond with ONLY this JSON format:
 
     def _debug_results(self, results: Dict):
         """Debug output showing all metric scores and feedback for validation."""
-        print("📊 Fixed Evaluation Results with Feedback:")
+        print("RESULTS: Fixed Evaluation Results with Feedback:")
         for metric, data in results.items():
             if metric not in ["evaluation_time", "overall_score"] and isinstance(
                 data, dict
@@ -567,4 +581,3 @@ def create_fixed_evaluator() -> MetricEvaluator:
 
 # Backward compatibility
 ThreeMetricEvaluator = MetricEvaluator
-
