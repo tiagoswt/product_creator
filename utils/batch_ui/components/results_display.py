@@ -136,23 +136,26 @@ class ResultsDisplay:
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            # All as JSON button (single file)
-            all_results = [
-                config.get_latest_attempt().result for config in completed_configs
-            ]
-            json_data, filename = (
-                self.export_buttons.export_handler.export_products_as_json(
-                    all_results, "all_extracted_products.json"
+            # Single product JSON button
+            if completed_configs:
+                # Get the latest/first product result instead of all products
+                latest_config = completed_configs[0]  # Take the first completed config
+                single_result = latest_config.get_latest_attempt().result
+                
+                # Create filename for single product
+                brand = self._get_brand_from_result(single_result)
+                product_name = self._get_product_name_from_result(single_result)
+                filename = f"{brand}_{product_name}.json".replace(" ", "_").replace("/", "_")
+                
+                json_data = json.dumps(single_result, indent=2, ensure_ascii=False)
+                st.download_button(
+                    "📄 Download as JSON",
+                    data=json_data,
+                    file_name=filename,
+                    mime="application/json",
+                    use_container_width=True,
+                    help="Download the product as JSON file",
                 )
-            )
-            st.download_button(
-                "📄 Download All as JSON",
-                data=json_data,
-                file_name=filename,
-                mime="application/json",
-                use_container_width=True,
-                help="Download all products in a single JSON file",
-            )
 
         with col2:
             # Individual JSON files as ZIP
@@ -657,7 +660,6 @@ class ResultsDisplay:
                 latest_attempt = config.get_latest_attempt()
                 result = latest_attempt.result
 
-                brand = self._get_brand_from_result(result)
                 product_name = self._get_product_name_from_result(result)
 
                 # Get evaluation data for quality badge
@@ -676,7 +678,7 @@ class ResultsDisplay:
                 # Compact successful result display with product number, quality, and creator
                 col1, col2 = st.columns([4, 1])
                 with col1:
-                    success_text = f"Product {product_num}: ✅ {brand} - {product_name}"
+                    success_text = f"Product {product_num}: ✅ \"{product_name}\""
                     if quality_badge:
                         success_text += f" | {quality_badge}"
                     # PHASE 3: Add creator info
@@ -978,6 +980,14 @@ class ResultsDisplay:
 
     def _get_brand_from_result(self, result):
         """Extract brand name from result with fallback logic"""
+        # Handle array format (subtype)
+        if isinstance(result, list) and len(result) > 0:
+            result = result[0]  # Use first item for brand extraction
+        
+        # Handle dict format
+        if not isinstance(result, dict):
+            return "Unknown"
+            
         for field in ["brand", "Brand", "BRAND"]:
             # Check catalogA/catalogB structure
             for catalog in ["catalogA", "catalogB"]:
@@ -990,25 +1000,37 @@ class ResultsDisplay:
                     ):
                         return value.strip()
 
-            # Handle flat structure
-            value = result.get(field)
-            if (
-                value
-                and value.strip()
-                and value.lower() not in ["", "null", "none", "unknown"]
-            ):
-                return value.strip()
+            # Handle flat structure - but only if field exists  
+            if field in result:
+                value = result[field]
+                if (
+                    value
+                    and str(value).strip()
+                    and str(value).lower() not in ["", "null", "none", "unknown"]
+                ):
+                    return str(value).strip()
 
         return "Unknown"
 
     def _get_product_name_from_result(self, result):
         """Extract product name from result with fallback logic"""
+        # Handle array format (subtype)
+        if isinstance(result, list) and len(result) > 0:
+            result = result[0]  # Use first item for name extraction
+        
+        # Handle dict format
+        if not isinstance(result, dict):
+            return "Unknown Product"
+            
         # Try different field names in order of preference
         name_fields = [
-            "itemDescriptionEN",  # For cosmetics and subtype
+            "UrlEN",  # Primary preference - SEO URL slug
+            "ItemDescriptionEN",  # For cosmetics and subtype (updated case)
+            "itemDescriptionEN",  # For cosmetics and subtype (legacy case)
             "product_name",  # For fragrance
             "product_title_EN",  # Alternative from catalogA
-            "itemDescriptionPT",  # Portuguese fallback
+            "ItemDescriptionPT",  # Portuguese fallback (updated case)
+            "itemDescriptionPT",  # Portuguese fallback (legacy case)
             "product_title_PT",  # Portuguese fallback
         ]
 
@@ -1034,14 +1056,15 @@ class ResultsDisplay:
                     ):
                         return value.strip()
 
-            # Handle flat structure
-            value = result.get(field)
-            if (
-                value
-                and value.strip()
-                and value.lower() not in ["", "null", "none", "unknown"]
-            ):
-                return value.strip()
+            # Handle flat structure - but only if field exists
+            if field in result:
+                value = result[field]
+                if (
+                    value
+                    and str(value).strip()
+                    and str(value).lower() not in ["", "null", "none", "unknown"]
+                ):
+                    return str(value).strip()
 
         return "Unknown Product"
 
@@ -1090,7 +1113,15 @@ class ResultsDisplay:
 
     def _format_price_display(self, result):
         """Format price for display"""
-        price_fields = ["price", "Price", "cost", "Cost"]
+        # Handle array format (subtype)
+        if isinstance(result, list) and len(result) > 0:
+            result = result[0]  # Use first item for price extraction
+        
+        # Handle dict format
+        if not isinstance(result, dict):
+            return "N/A"
+            
+        price_fields = ["priceSale", "priceRecommended", "price", "Price", "cost", "Cost"]
         for field in price_fields:
             for catalog in ["catalogA", "catalogB"]:
                 if catalog in result and isinstance(result[catalog], dict):
@@ -1098,26 +1129,68 @@ class ResultsDisplay:
                     if value and str(value).strip():
                         return str(value).strip()
 
-            value = result.get(field)
-            if value and str(value).strip():
-                return str(value).strip()
+            if field in result:
+                value = result[field]
+                if value and str(value).strip():
+                    return str(value).strip()
 
         return "N/A"
 
     def _format_size_display(self, result):
         """Format size/volume for display"""
-        size_fields = ["size", "Size", "volume", "Volume", "weight", "Weight"]
+        # Handle array format (subtype)
+        if isinstance(result, list) and len(result) > 0:
+            result = result[0]  # Use first item for size extraction
+        
+        # Handle dict format
+        if not isinstance(result, dict):
+            return "N/A"
+            
+        size_fields = ["ItemCapacity", "itemCapacity", "size", "Size", "volume", "Volume", "weight", "Weight"]
+        unit_fields = ["ItemCapacityUnits", "itemCapacityUnits", "unit", "Unit"]
+        
+        size_value = None
+        unit_value = ""
+        
+        # Get size value
         for field in size_fields:
             for catalog in ["catalogA", "catalogB"]:
                 if catalog in result and isinstance(result[catalog], dict):
                     value = result[catalog].get(field)
                     if value and str(value).strip():
-                        return str(value).strip()
-
-            value = result.get(field)
-            if value and str(value).strip():
-                return str(value).strip()
-
+                        size_value = str(value).strip()
+                        break
+            if size_value:
+                break
+                
+            if field in result:
+                value = result[field]
+                if value and str(value).strip():
+                    size_value = str(value).strip()
+                    break
+        
+        # Get unit value
+        for field in unit_fields:
+            for catalog in ["catalogA", "catalogB"]:
+                if catalog in result and isinstance(result[catalog], dict):
+                    value = result[catalog].get(field)
+                    if value and str(value).strip():
+                        unit_value = str(value).strip()
+                        break
+            if unit_value:
+                break
+                
+            if field in result:
+                value = result[field]
+                if value and str(value).strip():
+                    unit_value = str(value).strip()
+                    break
+        
+        if size_value and unit_value:
+            return f"{size_value} {unit_value}"
+        elif size_value:
+            return size_value
+        
         return "N/A"
 
     def _render_product_overview(self, result):
@@ -1153,23 +1226,26 @@ class ResultsDisplay:
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            # All as JSON button (single file)
-            all_results = [
-                config.get_latest_attempt().result for config in completed_configs
-            ]
-            json_data, filename = (
-                self.export_buttons.export_handler.export_products_as_json(
-                    all_results, "all_extracted_products.json"
+            # Single product JSON button
+            if completed_configs:
+                # Get the latest/first product result instead of all products
+                latest_config = completed_configs[0]  # Take the first completed config
+                single_result = latest_config.get_latest_attempt().result
+                
+                # Create filename for single product
+                brand = self._get_brand_from_result(single_result)
+                product_name = self._get_product_name_from_result(single_result)
+                filename = f"{brand}_{product_name}.json".replace(" ", "_").replace("/", "_")
+                
+                json_data = json.dumps(single_result, indent=2, ensure_ascii=False)
+                st.download_button(
+                    "📄 Download as JSON",
+                    data=json_data,
+                    file_name=filename,
+                    mime="application/json",
+                    use_container_width=True,
+                    help="Download the product as JSON file",
                 )
-            )
-            st.download_button(
-                "📄 Download All as JSON",
-                data=json_data,
-                file_name=filename,
-                mime="application/json",
-                use_container_width=True,
-                help="Download all products in a single JSON file",
-            )
 
         with col2:
             # Individual JSON files as ZIP
