@@ -24,10 +24,12 @@ class ResultFormatter:
         """
         # Try different field names in order of preference
         name_fields = [
-            "itemDescriptionEN",  # For cosmetics and subtype
+            "ItemDescriptionEN",  # For cosmetics and subtype (updated case)
+            "itemDescriptionEN",  # For cosmetics and subtype (legacy case)
             "product_name",  # For fragrance
             "product_title_EN",  # Alternative from catalogA
-            "itemDescriptionPT",  # Portuguese fallback
+            "ItemDescriptionPT",  # Portuguese fallback (updated case)
+            "itemDescriptionPT",  # Portuguese fallback (legacy case)
             "product_title_PT",  # Portuguese fallback
         ]
 
@@ -101,7 +103,7 @@ class ResultFormatter:
     def format_price_display(result: Dict[str, Any]) -> str:
         """Format price for display"""
         # Try different possible price fields and nested structures
-        price_fields = ["price"]
+        price_fields = ["priceSale", "priceRecommended", "price"]
         currency_fields = ["currency"]
 
         price = None
@@ -479,3 +481,4 @@ class URLFormatter:
             preview += f"  ... and {len(url_list) - max_display} more"
 
         return preview.strip()
+
