@@ -40,10 +40,12 @@ class ExportHandler:
         """
         # Try different field names in order of preference
         name_fields = [
-            "itemDescriptionEN",  # For cosmetics and subtype
+            "ItemDescriptionEN",  # For cosmetics and subtype (updated case)
+            "itemDescriptionEN",  # For cosmetics and subtype (legacy case)
             "product_name",  # For fragrance
             "product_title_EN",  # Alternative from catalogA
-            "itemDescriptionPT",  # Portuguese fallback
+            "ItemDescriptionPT",  # Portuguese fallback (updated case)
+            "itemDescriptionPT",  # Portuguese fallback (legacy case)
             "product_title_PT",  # Portuguese fallback
         ]
 
@@ -104,6 +106,39 @@ class ExportHandler:
                 return value.strip()
 
         return "Unknown"
+
+    def _get_price_from_result(self, result, price_field="priceSale"):
+        """
+        Extract price from result, handling nested structures
+        
+        Args:
+            result (dict): Product result data
+            price_field (str): Which price field to extract (priceSale, priceRecommended, price)
+            
+        Returns:
+            str or None: Price value
+        """
+        # Try different price field names in order of preference
+        price_fields = [
+            price_field,  # Requested field first
+            "priceSale",  # New sale price field
+            "priceRecommended",  # New recommended price field
+            "price",  # Legacy price field
+        ]
+        
+        for field in price_fields:
+            # Handle nested catalogB structure
+            if "catalogB" in result and isinstance(result["catalogB"], dict):
+                value = result["catalogB"].get(field)
+                if value is not None and str(value).strip():
+                    return value
+                    
+            # Handle flat structure (for subtype arrays)
+            value = result.get(field)
+            if value is not None and str(value).strip():
+                return value
+                
+        return None
 
     def upload_single_product_to_dropbox(
         self, result, config_id, is_reprocessed=False, product_config=None
