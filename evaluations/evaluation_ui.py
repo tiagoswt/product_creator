@@ -78,7 +78,7 @@ def render_enhanced_reasoning_display(llm_reasoning: str, unique_key: str):
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.markdown("**🏗️ Structure Assessment**")
+        st.markdown("**[STRUCTURE] Structure Assessment**")
         st.caption("*JSON structure and schema compliance*")
         with st.container():
             st.text_area(
@@ -91,7 +91,7 @@ def render_enhanced_reasoning_display(llm_reasoning: str, unique_key: str):
             )
 
     with col2:
-        st.markdown("**📝 Content Assessment**")
+        st.markdown("**[CONTENT] Content Assessment**")
         st.caption("*Accuracy vs input, hallucination detection*")
         with st.container():
             st.text_area(
@@ -104,7 +104,7 @@ def render_enhanced_reasoning_display(llm_reasoning: str, unique_key: str):
             )
 
     with col3:
-        st.markdown("**🌍 Translation Assessment**")
+        st.markdown("**[TRANSLATION] Translation Assessment**")
         st.caption("*Portuguese translation quality*")
         with st.container():
             st.text_area(
