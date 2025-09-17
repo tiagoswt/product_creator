@@ -52,3 +52,9 @@ statsmodels
 psycopg2-binary>=2.9.0         # PostgreSQL adapter for Python
 sqlalchemy>=2.0.0              # SQL toolkit (optional but recommended)
 
+sentence-transformers
+faiss-cpu>=1.7.0
+matplotlib
+seaborn
+
+
