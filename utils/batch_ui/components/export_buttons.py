@@ -128,20 +128,27 @@ class ExportButtons:
             st.code(copy_text)
 
     def _render_bulk_json_button(self, completed_configs):
-        """Render bulk JSON export button"""
-        all_results = [
-            config.get_latest_attempt().result for config in completed_configs
-        ]
-        json_data, filename = self.export_handler.export_products_as_json(
-            all_results, "all_extracted_products.json"
-        )
+        """Render single JSON export button"""
+        if not completed_configs:
+            return
+            
+        # Get the latest/first product result instead of all products
+        latest_config = completed_configs[0]  # Take the first completed config
+        single_result = latest_config.get_latest_attempt().result
+        
+        # Create filename for single product
+        brand = self._get_brand_from_result(single_result)
+        product_name = self._get_product_name_from_result(single_result)
+        filename = f"{brand}_{product_name}.json".replace(" ", "_").replace("/", "_")
+        
+        json_data = json.dumps(single_result, indent=2, ensure_ascii=False)
         st.download_button(
-            "📄 Download All as JSON",
+            "📄 Download as JSON",
             data=json_data,
             file_name=filename,
             mime="application/json",
             use_container_width=True,
-            help="Download all products in a single JSON file",
+            help="Download the product as JSON file",
         )
 
     def _render_individual_json_export_button(self, completed_configs):
@@ -199,7 +206,16 @@ class ExportButtons:
         )
 
     def _get_brand_from_result(self, result):
-        """Extract brand name from result with fallback logic (copied from ResultsDisplay)"""
+        """Extract brand name from result with fallback logic"""
+        # Handle array format (subtype)
+        if isinstance(result, list) and len(result) > 0:
+            result = result[0]  # Use first item for brand extraction
+        
+        # Handle dict format
+        if not isinstance(result, dict):
+            return "Product"  # Generic fallback for subtype without brand
+            
+        # Try to find brand in standard locations
         for field in ["brand", "Brand", "BRAND"]:
             # Check catalogA/catalogB structure
             for catalog in ["catalogA", "catalogB"]:
@@ -212,25 +228,45 @@ class ExportButtons:
                     ):
                         return value.strip()
 
-            # Handle flat structure
-            value = result.get(field)
-            if (
-                value
-                and value.strip()
-                and value.lower() not in ["", "null", "none", "unknown"]
-            ):
-                return value.strip()
+            # Handle flat structure - but only if brand field exists
+            if field in result:
+                value = result[field]
+                if (
+                    value
+                    and str(value).strip()
+                    and str(value).lower() not in ["", "null", "none", "unknown"]
+                ):
+                    return str(value).strip()
 
-        return "Unknown"
+        # For subtype format, try to extract brand from product name
+        product_name = self._get_product_name_from_result(result)
+        if product_name and product_name != "Unknown Product":
+            # Try to extract brand from product name (first word often is brand)
+            words = product_name.split()
+            if len(words) > 0:
+                return words[0]
+        
+        return "Product"  # Generic fallback
 
     def _get_product_name_from_result(self, result):
         """Extract product name from result with fallback logic (copied from ResultsDisplay)"""
+        # Handle array format (subtype)
+        if isinstance(result, list) and len(result) > 0:
+            result = result[0]  # Use first item for name extraction
+        
+        # Handle dict format
+        if not isinstance(result, dict):
+            return "Unknown Product"
+            
         # Try different field names in order of preference
         name_fields = [
-            "itemDescriptionEN",  # For cosmetics and subtype
+            "UrlEN",  # Primary preference - SEO URL slug
+            "ItemDescriptionEN",  # For cosmetics and subtype (updated case)
+            "itemDescriptionEN",  # For cosmetics and subtype (legacy case)
             "product_name",  # For fragrance
             "product_title_EN",  # Alternative from catalogA
-            "itemDescriptionPT",  # Portuguese fallback
+            "ItemDescriptionPT",  # Portuguese fallback (updated case)
+            "itemDescriptionPT",  # Portuguese fallback (legacy case)
             "product_title_PT",  # Portuguese fallback
         ]
 
@@ -256,14 +292,15 @@ class ExportButtons:
                     ):
                         return value.strip()
 
-            # Handle flat structure
-            value = result.get(field)
-            if (
-                value
-                and value.strip()
-                and value.lower() not in ["", "null", "none", "unknown"]
-            ):
-                return value.strip()
+            # Handle flat structure - but only if field exists
+            if field in result:
+                value = result[field]
+                if (
+                    value
+                    and str(value).strip()
+                    and str(value).lower() not in ["", "null", "none", "unknown"]
+                ):
+                    return str(value).strip()
 
         return "Unknown Product"
 
