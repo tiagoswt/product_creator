@@ -10,6 +10,10 @@ from processors.excel_processor import extract_excel_data
 from processors.web_processor import extract_website_data
 from processors.text_processor import process_with_llm, process_hscode_with_deepseek
 from utils.product_config import update_product_config
+from processors.text_processor import (
+    get_hscode_from_product_data,
+    set_hscode_in_product_data,
+)
 
 
 class ProductReprocessor:
@@ -288,11 +292,24 @@ class ProductReprocessor:
             # Create a copy of the original result
             updated_result = original_result.copy()
 
+            # If nested structure, copy it properly
+            if "catalogB" in updated_result and isinstance(
+                updated_result["catalogB"], dict
+            ):
+                updated_result["catalogB"] = updated_result["catalogB"].copy()
+            if "catalogA" in updated_result and isinstance(
+                updated_result["catalogA"], dict
+            ):
+                updated_result["catalogA"] = updated_result["catalogA"].copy()
+
             # Reprocess HScode
             new_hscode = process_hscode_with_deepseek(updated_result)
 
             if new_hscode:
-                updated_result["hscode"] = new_hscode
+                # Use helper function to set HScode in correct location
+                set_hscode_in_product_data(
+                    updated_result, new_hscode, config.product_type
+                )
                 return updated_result
             else:
                 return None
