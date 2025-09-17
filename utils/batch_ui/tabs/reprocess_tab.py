@@ -110,8 +110,11 @@ def _render_no_marked_products_info(completed_configs):
         for i, config in enumerate(completed_configs):
             latest_attempt = config.get_latest_attempt()
             result = latest_attempt.result
+            # Import the extract function to use the same logic
+            from evaluations.simple_db import extract_product_name_from_json
+            product_name = extract_product_name_from_json(result)
             st.write(
-                f"**{i+1}.** {result.get('brand', 'Unknown')} - {result.get('product_name', 'Unknown')}"
+                f"**{i+1}.** {product_name}"
             )
             st.caption(
                 f"Model: {config.model_provider}/{config.model_name} | Sources: {config.source_summary()}"
@@ -128,8 +131,11 @@ def _render_marked_product(config, index, reprocessor, export_buttons):
         col1, col2 = st.columns([9, 1])
 
         with col1:
+            # Import the extract function to use the same logic
+            from evaluations.simple_db import extract_product_name_from_json
+            product_name = extract_product_name_from_json(result)
             st.markdown(
-                f"**{index}. {result.get('brand', 'Unknown')} - {result.get('product_name', 'Unknown')}**"
+                f"**{index}. {product_name}**"
             )
             st.caption(
                 f"Current: {config.model_provider}/{config.model_name} | Sources: {config.source_summary()}"
@@ -152,8 +158,11 @@ def _render_marked_product(config, index, reprocessor, export_buttons):
         # Individual reprocessing parameters for this product
         st.write("**⚙️ Configure Reprocessing Parameters:**")
 
+        # Import the extract function to use the same logic
+        from evaluations.simple_db import extract_product_name_from_json
+        product_name = extract_product_name_from_json(result)
         with st.expander(
-            f"🔧 Settings for {result.get('product_name', 'Product')}", expanded=False
+            f"🔧 Settings for {product_name}", expanded=False
         ):
             _render_reprocessing_settings(config, reprocessor, export_buttons)
 
@@ -329,8 +338,11 @@ def _render_reprocessing_history(marked_configs):
                 latest_attempt = config.get_latest_attempt()
                 result = latest_attempt.result
 
+                # Import the extract function to use the same logic
+                from evaluations.simple_db import extract_product_name_from_json
+                product_name = extract_product_name_from_json(result)
                 with st.expander(
-                    f"📊 {result.get('brand', 'Unknown')} - {result.get('product_name', 'Unknown')} ({len(config.processing_attempts)} attempts)"
+                    f"📊 {product_name} ({len(config.processing_attempts)} attempts)"
                 ):
                     for j, attempt in enumerate(reversed(config.processing_attempts)):
                         attempt_num = len(config.processing_attempts) - j
@@ -375,3 +387,5 @@ def _render_reprocessing_history(marked_configs):
                             j < len(config.processing_attempts) - 1
                         ):  # Don't show separator after last item
                             st.markdown("---")
+
+
