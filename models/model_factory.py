@@ -4,7 +4,11 @@ from models.openai_model import get_openai_llm
 import config
 
 
-def get_llm(model_name=None, temperature=config.DEFAULT_TEMPERATURE, provider="groq"):
+def get_llm(
+    model_name=None,
+    temperature=config.DEFAULT_TEMPERATURE,
+    provider=config.DEFAULT_PROVIDER,
+):
     """
     Factory function to get the appropriate LLM based on provider
 
