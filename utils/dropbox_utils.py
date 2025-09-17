@@ -266,12 +266,15 @@ def _get_product_name_from_result(result_data):
     Returns:
         str: Product name
     """
-    # Try different field names in order of preference
+    # Try different field names in order of preference - UrlEN first, then existing fields
     name_fields = [
-        "itemDescriptionEN",  # For cosmetics and subtype
+        "UrlEN",  # Primary preference - SEO URL slug
+        "ItemDescriptionEN",  # For cosmetics and subtype (updated case)
+        "itemDescriptionEN",  # For cosmetics and subtype (legacy case)
         "product_name",  # For fragrance
         "product_title_EN",  # Alternative from catalogA
-        "itemDescriptionPT",  # Portuguese fallback
+        "ItemDescriptionPT",  # Portuguese fallback (updated case)
+        "itemDescriptionPT",  # Portuguese fallback (legacy case)
         "product_title_PT",  # Portuguese fallback
     ]
 
@@ -279,6 +282,16 @@ def _get_product_name_from_result(result_data):
         # Handle nested catalogB structure
         if "catalogB" in result_data and isinstance(result_data["catalogB"], dict):
             value = result_data["catalogB"].get(field)
+            if (
+                value
+                and value.strip()
+                and value.lower() not in ["", "null", "none", "unknown"]
+            ):
+                return value.strip()
+
+        # Handle nested catalogA structure
+        if "catalogA" in result_data and isinstance(result_data["catalogA"], dict):
+            value = result_data["catalogA"].get(field)
             if (
                 value
                 and value.strip()
@@ -661,3 +674,4 @@ def test_dropbox_connection():
     except Exception as e:
         st.error(f"Dropbox connection test failed: {str(e)}")
         return False
+
