@@ -55,12 +55,15 @@ def extract_brand_from_json(extracted_json: Dict) -> str:
 def extract_product_name_from_json(extracted_json: Dict) -> str:
     """Extract product name from extracted JSON, handling different product structures."""
     try:
-        # Try different field names in order of preference
+        # Try different field names in order of preference - UrlEN first, then existing fields
         name_fields = [
-            "itemDescriptionEN",  # For cosmetics and subtype
+            "UrlEN",  # Primary preference - SEO URL slug
+            "ItemDescriptionEN",  # For cosmetics and subtype (updated case)
+            "itemDescriptionEN",  # For cosmetics and subtype (legacy case)
             "product_name",  # For fragrance
             "product_title_EN",  # Alternative from catalogA
-            "itemDescriptionPT",  # Portuguese fallback
+            "ItemDescriptionPT",  # Portuguese fallback (updated case)
+            "itemDescriptionPT",  # Portuguese fallback (legacy case)
             "product_title_PT",  # Portuguese fallback
         ]
 
@@ -1345,6 +1348,3 @@ def get_db() -> EvaluationDB:
     """Get or create the global database instance with Streamlit caching."""
     return EvaluationDB()
 
-def get_db() -> EvaluationDB:
-    """Get or create the global database instance with Streamlit caching."""
-    return EvaluationDB()
