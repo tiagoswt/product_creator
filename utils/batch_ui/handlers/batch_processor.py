@@ -294,7 +294,7 @@ class BatchProcessor:
         """Extract a readable product name from the result for status display"""
         try:
             # Try different field names based on product type
-            name_fields = ["itemDescriptionEN", "product_name", "product_title_EN"]
+            name_fields = ["ItemDescriptionEN", "itemDescriptionEN", "product_name", "product_title_EN"]
             brand_fields = ["brand", "Brand"]
 
             brand = "Unknown"
