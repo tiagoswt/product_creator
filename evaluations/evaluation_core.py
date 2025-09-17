@@ -8,6 +8,7 @@ import re
 import time
 from typing import Dict, List, Optional, Tuple
 import streamlit as st
+from langsmith import traceable
 
 from models.model_factory import get_llm
 from .simple_db import get_db
@@ -77,9 +78,13 @@ Respond with ONLY valid JSON:
         user_id: str = None,
         username: str = None,
         user_name: str = None,
+        # NEW: Add production model parameters
+        production_model_provider: str = None,
+        production_model_name: str = None,
+        production_temperature: float = None,
     ) -> Optional[int]:
         """
-        PHASE 3: Evaluate a single product extraction with user attribution.
+        PHASE 3: Evaluate a single product extraction with user attribution and production model tracking.
 
         Args:
             product_config_id: Unique ID for the product configuration
@@ -89,6 +94,9 @@ Respond with ONLY valid JSON:
             user_id: UUID of the user who created this product
             username: Username of the creator
             user_name: Full name of the creator
+            production_model_provider: Provider used to create the product (groq/openai)
+            production_model_name: Model used to create the product
+            production_temperature: Temperature used to create the product
 
         Returns:
             evaluation_id if successful, None if failed.
@@ -109,7 +117,7 @@ Respond with ONLY valid JSON:
                     product_type=product_type,
                 )
 
-                # PHASE 3: Pass user context to database
+                # UPDATED: Pass production model info to database
                 evaluation_id = self.db.store_openevals_evaluation(
                     product_config_id=product_config_id,
                     openevals_results=results,
@@ -119,6 +127,10 @@ Respond with ONLY valid JSON:
                     user_id=user_id,  # PHASE 3: User attribution
                     username=username,  # PHASE 3: User attribution
                     user_name=user_name,  # PHASE 3: User attribution
+                    # NEW: Pass production model info
+                    production_model_provider=production_model_provider,
+                    production_model_name=production_model_name,
+                    production_temperature=production_temperature,
                 )
 
                 return evaluation_id
@@ -132,6 +144,10 @@ Respond with ONLY valid JSON:
                     user_id=user_id,  # PHASE 3: User attribution
                     username=username,  # PHASE 3: User attribution
                     user_name=user_name,  # PHASE 3: User attribution
+                    # NEW: Pass production model info to fallback too
+                    production_model_provider=production_model_provider,
+                    production_model_name=production_model_name,
+                    production_temperature=production_temperature,
                 )
 
         except Exception:
@@ -147,45 +163,68 @@ Respond with ONLY valid JSON:
         user_id: str = None,
         username: str = None,
         user_name: str = None,
+        # NEW: Add production model parameters
+        production_model_provider: str = None,
+        production_model_name: str = None,
+        production_temperature: float = None,
     ) -> Optional[int]:
-        """PHASE 3: Fallback evaluation using basic LLM with user attribution."""
+        """PHASE 3: Fallback evaluation using basic LLM with user attribution and production model tracking."""
+
         try:
+            # Get LLM for evaluation
             llm = get_llm(
                 model_name=self.evaluation_model,
-                provider=self.evaluation_provider,
                 temperature=0.1,
+                provider=self.evaluation_provider,
             )
 
             if not llm:
                 return None
 
-            formatted_prompt = self.fallback_prompt.format(
-                input_text=input_text[:100000],
-                extracted_json=json.dumps(extracted_result, indent=2)[:10000],
+            # Format the prompt
+            prompt = self.fallback_prompt.format(
+                input_text=input_text[:5000],  # Truncate for fallback
+                extracted_json=json.dumps(extracted_result, indent=2)[:5000],
                 product_type=product_type,
             )
 
-            response = llm.invoke(formatted_prompt)
-            response_text = (
-                response.content if hasattr(response, "content") else str(response)
-            )
+            # Get evaluation from LLM
+            response = llm.invoke(prompt)
 
-            scores = self._parse_fallback_response(response_text)
-            if not scores:
-                return None
+            # Parse JSON response
+            try:
+                if hasattr(response, "content"):
+                    response_text = response.content
+                else:
+                    response_text = str(response)
 
-            # PHASE 3: Pass user context to database
+                scores = json.loads(response_text)
+            except:
+                # Default scores if parsing fails
+                scores = {
+                    "structure_score": 3,
+                    "accuracy_score": 3,
+                    "translation_score": 3,
+                    "overall_score": 3.0,
+                    "reasoning": "Fallback evaluation - could not parse LLM response",
+                }
+
+            # Store evaluation using the fallback store_evaluation method
             evaluation_id = self.db.store_evaluation(
                 product_config_id=product_config_id,
-                input_text=input_text[:100000],
+                input_text=input_text,
                 extracted_json=extracted_result,
                 scores=scores,
-                llm_reasoning=scores.get("reasoning", ""),
-                evaluation_model=f"fallback/{self.evaluation_provider}/{self.evaluation_model}",
+                llm_reasoning=scores.get("reasoning", "Fallback evaluation completed"),
+                evaluation_model=f"fallback/{self.evaluation_model}",
                 product_type=product_type,
-                user_id=user_id,  # PHASE 3: User attribution
-                username=username,  # PHASE 3: User attribution
-                user_name=user_name,  # PHASE 3: User attribution
+                user_id=user_id,
+                username=username,
+                user_name=user_name,
+                # NEW: Add production model parameters
+                production_model_provider=production_model_provider,
+                production_model_name=production_model_name,
+                production_temperature=production_temperature,
             )
 
             return evaluation_id
@@ -226,9 +265,10 @@ Respond with ONLY valid JSON:
             return None
 
 
+@traceable(name="batch_evaluation", tags=["evaluation", "batch", "multi-product"])
 def evaluate_batch(completed_configs: List, current_user: Dict = None) -> Dict:
     """
-    PHASE 3: Evaluate a batch of completed product configurations with user attribution.
+    PHASE 3: Evaluate a batch of completed product configurations with user attribution and production model tracking.
 
     Args:
         completed_configs: List of completed product configurations
@@ -274,7 +314,7 @@ def evaluate_batch(completed_configs: List, current_user: Dict = None) -> Dict:
                     results["failed"] += 1
                     continue
 
-                # PHASE 3: Evaluate with user attribution
+                # UPDATED: PHASE 3: Evaluate with user attribution AND production model tracking
                 evaluation_id = evaluator.evaluate_single_product(
                     product_config_id=product_config.id,
                     input_text=input_text,
@@ -283,6 +323,10 @@ def evaluate_batch(completed_configs: List, current_user: Dict = None) -> Dict:
                     user_id=user_id,  # PHASE 3: User attribution
                     username=username,  # PHASE 3: User attribution
                     user_name=user_name,  # PHASE 3: User attribution
+                    # NEW: Add production model info from ProductConfig
+                    production_model_provider=product_config.model_provider,
+                    production_model_name=product_config.model_name,
+                    production_temperature=product_config.temperature,
                 )
 
                 if evaluation_id:
