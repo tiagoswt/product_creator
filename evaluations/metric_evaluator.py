@@ -14,6 +14,7 @@ import re
 import time
 from typing import Dict, List, Optional, Any
 import streamlit as st
+from langsmith import traceable
 
 try:
     from langchain_openai import ChatOpenAI
@@ -50,7 +51,7 @@ class MetricEvaluator:
         )
 
         if config.OPENEVALS_DEBUG:
-            print("✅ Fixed Three-Metric Evaluator initialized with direct LLM calls")
+            print("SUCCESS: Fixed Three-Metric Evaluator initialized with direct LLM calls")
 
     def evaluate_extraction(
         self, input_text: str, extracted_json: Dict, product_type: str
@@ -101,6 +102,10 @@ class MetricEvaluator:
             print(f"Evaluation failed: {str(e)}")
             return self._create_fallback_results(time.time() - start_time, str(e))
 
+    @traceable(
+        name="structure_evaluation",
+        tags=["evaluation", "structure", "json_validation", "schema_compliance"]
+    )
     def _evaluate_structure_correctness(
         self, input_text: str, extracted_json: Dict, product_type: str
     ) -> Dict:
@@ -179,28 +184,34 @@ EXTRACTED JSON: {json_str}
 TASK: Rate the JSON structure compliance for subtype products (1-5 scale).
 
 REQUIRED STRUCTURE for subtype:
-- catalogB object containing:
-  - itemDescriptionEN (string) - English product description
-  - itemDescriptionPT (string) - Portuguese product description  
-  - price (number) - product price
-  - purchase_price (number, optional) - cost price
-  - currency (string) - price currency (e.g., "EUR")
-  - product_type (string) - product category (e.g., "cleanser", "serum", "cream")
-  - itemCapacity (number) - size/capacity value
-  - itemCapacityUnits (string) - unit of measurement (e.g., "ml", "gr")
-  - package_type (string) - packaging type
-  - ingredients (array) - list of INCI ingredients
+- Array of objects, each containing:
   - EAN (string, optional) - product barcode
   - CNP (string, optional) - product ID
-  - hscode (string, optional) - HS classification code
+  - ItemDescriptionEN (string) - English product description
+  - ItemDescriptionPT (string) - Portuguese product description  
+  - ItemCapacity (string/number) - size/capacity value
+  - ItemCapacityUnits (string) - unit of measurement (e.g., "ml", "gr")
+  - PackType (string) - packaging type
+  - VariantType (string, optional) - variant type (e.g., "color", "size")
+  - VariantValue (string, optional) - variant value
+  - HexColor (string, optional) - hex color code
+  - SecondVariantType (string, optional) - second variant type
+  - SecondVariant (string, optional) - second variant value
+  - Width (string/number, optional) - product width
+  - Height (string/number, optional) - product height
+  - Depth (string/number, optional) - product depth
+  - Weight (string/number, optional) - product weight
+  - hsCode (string, optional) - HS classification code (updated case)
+  - priceSale (string/number, optional) - selling price
+  - priceRecommended (string/number, optional) - recommended retail price
 - Valid JSON syntax with proper data types
 
 SCORING:
-5 = Perfect structure compliance - catalogB present with all required fields and correct types
+5 = Perfect structure compliance - array format with all required fields and correct types
 4 = Minor structural issues - 1-2 missing optional fields or minor type issues
 3 = Some structural problems - missing some required fields or incorrect types
-2 = Major structural issues - missing critical catalogB fields or widespread format problems  
-1 = Severely malformed structure - invalid JSON or missing catalogB section entirely
+2 = Major structural issues - missing critical array fields or widespread format problems  
+1 = Severely malformed structure - invalid JSON or not in proper array format
 
 Respond with ONLY this JSON format:
 {{"score": <1-5>, "feedback": "<specific feedback about structure compliance>"}}""",
@@ -228,6 +239,10 @@ Respond with ONLY this JSON format:
             print(f"Structure evaluation failed: {str(e)}")
             return self._create_metric_fallback("structure", str(e))
 
+    @traceable(
+        name="content_evaluation",
+        tags=["evaluation", "content", "accuracy", "hallucination_detection", "fidelity"]
+    )
     def _evaluate_content_correctness(
         self, input_text: str, extracted_json: Dict
     ) -> Dict:
@@ -285,6 +300,10 @@ Respond with ONLY this JSON format:
             print(f"Content evaluation failed: {str(e)}")
             return self._create_metric_fallback("content", str(e))
 
+    @traceable(
+        name="translation_evaluation",
+        tags=["evaluation", "translation", "portuguese", "localization", "fluency"]
+    )
     def _evaluate_translation_correctness(
         self, input_text: str, extracted_json: Dict
     ) -> Dict:
@@ -548,3 +567,4 @@ def create_fixed_evaluator() -> MetricEvaluator:
 
 # Backward compatibility
 ThreeMetricEvaluator = MetricEvaluator
+
