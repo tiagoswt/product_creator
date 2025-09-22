@@ -7,24 +7,25 @@ JSON Output Requirements
 Extract the following details in valid JSON format:
 
 Technical Data Fields:
-EAN: EAN barcode (if available)
-CNP: Product ID (if available)
-ItemDescriptionEN: Short product name in English WITHOUT size/quantity (e.g., "Hyalu-Filler Lips" NOT "Hyalu-Filler Lips 15ml")
-ItemDescriptionPT: Short product name COMPLETELY TRANSLATED to Portuguese with function WITHOUT size/quantity - translate ALL words except brand names (e.g., "CeraVe Lábios Hidratante" NOT "CeraVe Lips Hidratante")
-ItemCapacity: Size value (numeric without quotes, e.g., 50)
-ItemCapacityUnits: Size unit code (you need to convert the string into the correct integer codification like: "unit" as "1", "ml" as "2", "gr" as "4", "kilogram" as "5", "capsules" as "6", "pills" as "8", "gummies" as "11", "pares" as "14")
-PackType: One of (you need to convert the string into the correct integer codification): "normal" as "0", "coffret" as "1", "promo pack" as "3", "limited edition" as "6", "recharge" as "14", "offer with the main product" as "13"
-VariantType: Type of variant (e.g., "color", "size", "scent")
-VariantValue: Value of the variant (e.g., "red", "large", "vanilla")
-HexColor: Hex color code if product has color variants
-SecondVariantType: Second variant type if applicable
-SecondVariant: Second variant value if applicable
-Width: Product width (numeric without quotes, e.g., 15.5, or null if not available)
-Height: Product height (numeric without quotes, e.g., 10.2, or null if not available)
-Depth: Product depth (numeric without quotes, e.g., 3.0, or null if not available)
-Weight: Product weight in grams (numeric without quotes, e.g., 125, or null if not available)
-priceSale: Selling price (numeric without quotes, e.g., 29.99, or null if not available)
-priceRecommended: Recommended retail price (numeric without quotes, e.g., 39.99, or null if not available)
+    EAN: EAN barcode (if available);
+    CNP: Product ID (if available);
+    ItemDescriptionEN: Short product name in English WITHOUT size/quantity (e.g., "Hyalu-Filler Lips" NOT "Hyalu-Filler Lips 15ml");
+    ItemDescriptionPT: Short product name COMPLETELY TRANSLATED to Portuguese with function WITHOUT size/quantity - translate ALL words except brand names (e.g., "CeraVe Lábios Hidratante" NOT "CeraVe Lips Hidratante");
+    ItemCapacity: Size value (numeric without quotes, e.g., 50);
+    ItemCapacityUnits: Size unit code (you need to convert the string into the correct integer codification like: "unit" as "1", "ml" as "2", "gr" as "4", "kilogram" as "5", "capsules" as "6", "pills" as "8", "gummies" as "11", "pares" as "14"). If it is not available complete with "2";
+    PackType: One of (you need to convert the string into the correct integer codification): "normal" as "0", "coffret" as "1", "promo pack" as "3", "limited edition" as "6", "recharge" as "14", "offer with the main product" as "13";
+    VariantType: Type of variant (e.g., "color", "size", "scent");
+    VariantValue: Value of the variant (e.g., "red", "large", "vanilla");
+    HexColor: Hex color code if product has color variants;
+    SecondVariantType: Second variant type if applicable;
+    SecondVariant: Second variant value if applicable;
+    Width: Product width (numeric without quotes, e.g., 15.5, or 0 if not available);
+    Height: Product height (numeric without quotes, e.g., 10.2, or 0 if not available);
+    Depth: Product depth (numeric without quotes, e.g., 3.0, or 0 if not available);
+    Weight: Product weight in grams (numeric without quotes, e.g., 125, or 0 if not available);
+    priceSale: Selling price (numeric without quotes, e.g., 29.99, or 0 if not available);
+    priceRecommended: Recommended retail price (numeric without quotes, e.g., 39.99, or 0 if not available);
+    supplierPrice: Supplier price, the price that we buy. Is always less that the priceSale (numeric without quotes, e.g., 39.99, or 0 if not available)
 
 IMPORTANT:
 
@@ -45,17 +46,18 @@ Respond ONLY with valid JSON in this exact structure:
 "ItemCapacity": null,
 "ItemCapacityUnits": "",
 "PackType": "",
-"VariantType": 0,
 "VariantValue": "",
-"HexColor": "",
-"SecondVariantType": 0,
+"VariantType": 0,
 "SecondVariant": "",
-"Width": null,
-"Height": null,
-"Depth": null,
-"Weight": null,
-"priceSale": null,
-"priceRecommended": null
+"SecondVariantType": 0,
+"HexColor": "",
+"Width": 1,
+"Height": 1,
+"Depth": 1,
+"Weight": 1,
+"priceSale":"",
+"priceRecommended":""
+"supplierPrice":""
 }}]
 
 Important Notes
