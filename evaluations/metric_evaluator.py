@@ -128,21 +128,45 @@ EXTRACTED JSON: {json_str}
 
 TASK: Rate the JSON structure compliance for cosmetics products (1-5 scale).
 
-REQUIRED STRUCTURE for cosmetics:
-- catalogA object with: product_title_EN, product_title_PT, brand, description, how_to_use
-- catalogB object with: itemDescriptionEN, itemDescriptionPT, price, product_type, itemCapacity, itemCapacityUnits, ingredients
-- Valid JSON syntax with proper data types (price as number, ingredients as array)
-- No null/empty values for critical fields
+REQUIRED STRUCTURE for cosmetics (based on cosmetics_prompt.md):
+ROOT LEVEL FIELDS (all required):
+- TitleEN (string): Full product name in English without size/quantity
+- TitlePT (string): Full product name translated to Portuguese without size/quantity
+- DescriptionEN (string): SEO-optimized HTML marketing description in English
+- DescriptionPT (string): SEO-optimized HTML marketing description in Portuguese
+- UrlEN (string): SEO URL slug from English title
+- UrlPT (string): SEO URL slug from Portuguese title
+- HowToEN (string): Usage instructions in English
+- HowToPT (string): Usage instructions in Portuguese
+- HowtoType (string/number): Usage type code (0-4)
+- brand (string): Product brand name
+- ModelName (string): Should be "deo"
+- CategoryId (number): Category identifier
+- Subtypes (array): Array of product variants
+
+SUBTYPES ARRAY STRUCTURE (each object must contain):
+- EAN (string): EAN barcode
+- CNP (string): Product ID
+- ItemDescriptionEN (string): Short English name without size
+- ItemDescriptionPT (string): Short Portuguese name without size
+- ItemCapacity (number): Size value
+- ItemCapacityUnits (string/number): Unit code (1=unit, 2=ml, 4=gr, etc.)
+- PackType (string/number): Pack type code (0=normal, 1=coffret, etc.)
+- VariantType (string): Variant type
+- VariantValue (string): Variant value
+- HexColor (string): Color code if applicable
+- Width, Height, Depth, Weight (numbers): Physical dimensions
+- priceSale, priceRecommended, supplierPrice (numbers): Pricing information
 
 SCORING:
-5 = Perfect structure compliance - all required fields present with correct types
-4 = Minor structural issues - 1-2 missing optional fields or minor type issues  
-3 = Some structural problems - missing some required fields or incorrect types
-2 = Major structural issues - missing critical sections or widespread format problems
-1 = Severely malformed structure - invalid JSON or missing catalogA/catalogB entirely
+5 = Perfect structure compliance - all required root fields and Subtypes array with correct types
+4 = Minor structural issues - 1-2 missing optional fields or minor type issues
+3 = Some structural problems - missing some required fields or incorrect array structure
+2 = Major structural issues - missing critical root fields or malformed Subtypes array
+1 = Severely malformed structure - invalid JSON or completely wrong schema
 
 Respond with ONLY this JSON format:
-{{"score": <1-5>, "feedback": "<specific feedback about structure compliance>"}}""",
+{{"score": <1-5>, "feedback": "<specific feedback about structure compliance with actual field names>"}}""",
             "fragrance": f"""You are evaluating the JSON structure quality of a fragrance product extraction.
 
 SOURCE DATA: {truncated_input}
@@ -151,19 +175,24 @@ EXTRACTED JSON: {json_str}
 
 TASK: Rate the JSON structure compliance for fragrance products (1-5 scale).
 
-REQUIRED STRUCTURE for fragrance:
-- product_name (string) - main product name
-- brand (string) - fragrance brand
-- price (number) - product price
-- currency (string) - price currency (e.g., "EUR")
-- meta_description (string) - marketing description
-- scent_family (string) - fragrance family (e.g., "floral", "woody", "oriental")
-- top_notes (array) - list of top fragrance notes
-- middle_notes (array) - list of heart/middle notes  
-- base_notes (array) - list of base notes
-- concentration (string) - e.g., "Eau de Parfum", "Eau de Toilette"
-- size (string) - product size
-- gender (string) - "men", "women", or "unisex"
+REQUIRED STRUCTURE for fragrance (based on fragance_prompt.md):
+- product_name (string): Main product name
+- brand (string): Fragrance brand
+- price (number): Product price
+- purchase_price (number): Cost price at which company buys (if available)
+- currency (string): Price currency (e.g., "EUR")
+- meta_description (string): 120-155 character marketing description
+- benefits (string): Product benefits and advantages
+- conclusion (string): 3-5 lines sales storytelling
+- scent_family (string): Fragrance family (e.g., "floral", "woody", "oriental")
+- top_notes (array): List of top fragrance notes
+- middle_notes (array): List of heart/middle notes
+- base_notes (array): List of base notes
+- concentration (string): e.g., "Eau de Parfum", "Eau de Toilette"
+- size (string): Product size (e.g., "50 ml")
+- gender (string): "men", "women", or "unisex"
+- EAN (string): Product EAN if available
+- CNP (string): Product ID if available
 - Valid JSON syntax with proper data types
 
 SCORING:
@@ -183,27 +212,26 @@ EXTRACTED JSON: {json_str}
 
 TASK: Rate the JSON structure compliance for subtype products (1-5 scale).
 
-REQUIRED STRUCTURE for subtype:
+REQUIRED STRUCTURE for subtype (based on subtype_prompt.md):
 - Array of objects, each containing:
-  - EAN (string, optional) - product barcode
-  - CNP (string, optional) - product ID
-  - ItemDescriptionEN (string) - English product description
-  - ItemDescriptionPT (string) - Portuguese product description  
-  - ItemCapacity (string/number) - size/capacity value
-  - ItemCapacityUnits (string) - unit of measurement (e.g., "ml", "gr")
-  - PackType (string) - packaging type
-  - VariantType (string, optional) - variant type (e.g., "color", "size")
-  - VariantValue (string, optional) - variant value
-  - HexColor (string, optional) - hex color code
-  - SecondVariantType (string, optional) - second variant type
-  - SecondVariant (string, optional) - second variant value
-  - Width (string/number, optional) - product width
-  - Height (string/number, optional) - product height
-  - Depth (string/number, optional) - product depth
-  - Weight (string/number, optional) - product weight
-  - hsCode (string, optional) - HS classification code (updated case)
-  - priceSale (string/number, optional) - selling price
-  - priceRecommended (string/number, optional) - recommended retail price
+  - EAN (string): EAN barcode (if available)
+  - CNP (string): Product ID (if available)
+  - ItemDescriptionEN (string): Short English product name without size/quantity
+  - ItemDescriptionPT (string): Short Portuguese product name without size/quantity
+  - ItemCapacity (number): Size value (numeric without quotes)
+  - ItemCapacityUnits (string/number): Unit code (1=unit, 2=ml, 4=gr, 5=kg, 6=capsules, etc.)
+  - PackType (string/number): Pack type code (0=normal, 1=coffret, 3=promo, 6=limited, etc.)
+  - VariantType (number): Variant type (should be numeric code)
+  - VariantValue (string): Variant value
+  - HexColor (string): Hex color code if applicable
+  - SecondVariantType (number): Second variant type (should be numeric code)
+  - SecondVariant (string): Second variant value
+  - Width (number): Product width (numeric or null)
+  - Height (number): Product height (numeric or null)
+  - Depth (number): Product depth (numeric or null)
+  - Weight (number): Product weight in grams (numeric or null)
+  - priceSale (number): Selling price (numeric or null)
+  - priceRecommended (number): Recommended retail price (numeric or null)
 - Valid JSON syntax with proper data types
 
 SCORING:
@@ -581,3 +609,4 @@ def create_fixed_evaluator() -> MetricEvaluator:
 
 # Backward compatibility
 ThreeMetricEvaluator = MetricEvaluator
+
