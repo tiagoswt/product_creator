@@ -597,6 +597,9 @@ class ConfigurationForm:
                 base_product.strip().lower().replace(" ", "").replace("-", "")
             )
 
+        # Get the header row that was used for this configuration
+        excel_header_row = st.session_state.get("excel_header_row", 0) if has_excel else 0
+
         # Create the product configuration with default backend settings
         new_config = ProductConfig(
             product_type=product_type,
@@ -605,6 +608,7 @@ class ConfigurationForm:
             pdf_pages=selected_pdf_pages if has_pdf else [],
             excel_file=st.session_state.current_excel_file if has_excel else None,
             excel_rows=selected_excel_rows if has_excel else [],
+            excel_header_row=excel_header_row,  # Store header row per configuration
             website_url=website_url.strip() if has_website else None,
             model_provider=model_provider,
             model_name=model_name,
