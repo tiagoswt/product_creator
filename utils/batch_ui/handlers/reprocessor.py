@@ -335,7 +335,7 @@ class ProductReprocessor:
 
             # Process Excel if selected
             if config.excel_file is not None and config.excel_rows:
-                excel_header_row = st.session_state.get("excel_header_row", 0)
+                excel_header_row = getattr(config, 'excel_header_row', 0)
                 excel_text = extract_excel_data(
                     excel_file=config.excel_file,
                     excel_rows=config.excel_rows,
