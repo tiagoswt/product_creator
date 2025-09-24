@@ -75,6 +75,7 @@ class ProductConfig:
         pdf_pages: List[int] = None,
         excel_file=None,
         excel_rows: List[int] = None,
+        excel_header_row: int = 0,  # Store header row per configuration
         website_url: str = None,
         model_provider: str = "groq",
         model_name: str = None,
@@ -90,6 +91,7 @@ class ProductConfig:
         self.pdf_pages = pdf_pages or []
         self.excel_file = excel_file
         self.excel_rows = excel_rows or []
+        self.excel_header_row = excel_header_row  # Store header row per configuration
         self.website_url = website_url
 
         # Current processing parameters (can be modified for reprocessing)
@@ -248,6 +250,7 @@ class ProductConfig:
             "pdf_pages": self.pdf_pages,
             "excel_file_name": self.excel_file.name if self.excel_file else None,
             "excel_rows": self.excel_rows,
+            "excel_header_row": self.excel_header_row,
             "website_url": self.website_url,
             "model_provider": self.model_provider,
             "model_name": self.model_name,
@@ -341,6 +344,10 @@ def migrate_product_configs():
         # Add base_product attribute if it doesn't exist
         if not hasattr(config, "base_product"):
             config.base_product = ""
+
+        # Add excel_header_row attribute if it doesn't exist
+        if not hasattr(config, "excel_header_row"):
+            config.excel_header_row = 0
 
         # Add new reprocessing attributes if they don't exist
         if not hasattr(config, "processing_attempts"):
@@ -562,5 +569,7 @@ def get_config_creators_summary() -> Dict[str, Dict]:
             creators[username]["pending_count"] += 1
 
     return creators
+
+
 
 
