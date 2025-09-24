@@ -370,7 +370,7 @@ def _reconstruct_input_text_robust(product_config) -> str:
             try:
                 from processors.excel_processor import extract_excel_data
 
-                excel_header_row = st.session_state.get("excel_header_row", 0)
+                excel_header_row = getattr(product_config, 'excel_header_row', 0)
                 excel_text = extract_excel_data(
                     product_config.excel_file,
                     product_config.excel_rows,
@@ -477,3 +477,4 @@ def get_creators_list() -> List[Dict]:
         return db.get_creators_list()
     except Exception:
         return []
+
