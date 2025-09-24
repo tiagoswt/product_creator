@@ -15,60 +15,63 @@ Root Level Fields (Marketing Content):
     brand_category: Product line or category within brand (e.g., "Hyalu-Filler");
     ModelName: always show "deo";
     CategoryId:;
-    DescriptionEN: SEO-optimized marketing description (MANDATORY STRUCTURE - follow exactly):
+    DescriptionEN: SEO-optimized marketing description in HTML format (MANDATORY STRUCTURE - follow exactly):
 
         Opening Paragraph (2-3 sentences):
-            Always start with "Brand Product name ..."
+            Always start with "<strong>Brand Product name<strong>" ..."
             Highlight key benefits and product purpose
             Mention texture, application feel, and main skin concerns addressed
             Avoid the word "revolutionary"
+            Wrap in <p> tags
 
-        Double line break (\n\n)
-
+        Line break (<br>)
 
         Catchphrase (single line, DO NOT include any heading or label):
             Powerful, engaging statement about the product to captivate the customer attention
             Focus on transformation, results, or unique value proposition
             Write as one compelling sentence without heading
+            Wrap in <p> tags
 
-        Double line break (\n\n)
+        Line break (<br>)
 
         Key Benefits Section:
-            Must include the heading "Key Benefits:" exactly as shown
-            3-7 bullet points starting with "- "
+            Must include the heading "<h3>Key Benefits:</h3>" exactly as shown
+            Use <ul> and <li> tags for bullet points
             Include skin type suitability
             Note ethical claims (vegan, cruelty-free, etc.) if present
             Each bullet should be concise and benefit-focused
 
-        Double line break (\n\n)
+        Line break (<br>)
 
         Active Ingredients Section: (if applicable)
-            Must include the heading "Active Ingredients:" exactly as shown
-            Bullet list format starting with "- "
-            Ingredient names in **bold**
-            Plant family names in *italics*
+            Must include the heading "<h3>Active Ingredients:</h3>" exactly as shown
+            Use <ul> and <li> tags for bullet list
+            Ingredient names in <strong> tags
+            Plant family names in <em> tags
             Include function of each ingredient after colon
-            Format: "- **Ingredient Name**: Function description"
+            Format: "<li><strong>Ingredient Name</strong>: Function description</li>"
 
-        Double line break (\n\n)
+        Line break (<br>)
 
         Final Paragraph (EXACTLY 100-120 words):
             CRITICAL: Word count must be between 100-120 words - count carefully
-            Must start with "Brand Product name ..."
+            Must start with "<strong>Brand Product name<strong>" ..."
             Persuasively highlight transformation/results
             End with compelling statement about product value
             Avoid the word "must-have"
             Write as one flowing paragraph that drives purchase intent
+            Wrap in <p> tags
 
-    FORMATTING REQUIREMENTS:
-    - Use \n\n (double line breaks) between each section
-    - Use exact heading formats: "Key Benefits:" and "Active Ingredients:"
-    - Use "- " for bullet points (dash + space)
-    - Use **bold** for ingredient names
-    - Use *italics* for plant families
-    - No extra formatting or markdown beyond specified
+    HTML FORMATTING REQUIREMENTS:
+    - Use <br> for line breaks between sections
+    - Use <h3> tags for section headings: "Key Benefits:" and "Active Ingredients:"
+    - Use <ul> and <li> tags for bullet points
+    - Use <strong> tags for ingredient names
+    - Use <em> tags for plant families
+    - Use <p> tags for paragraphs
+    - Ensure proper HTML structure and valid syntax
 
-    DescriptionPT: SEO-optimized marketing DescriptionEN COMPLETELY TRANSLATED to European Portuguese of Portugal (PT-PT).
+    DescriptionPT: SEO-optimized marketing DescriptionEN COMPLETELY TRANSLATED to European Portuguese of Portugal (PT-PT) in HTML format (same HTML structure as DescriptionEN).
     howToType: (you need to convert the string into the correct integer codification) like: "usage advice" as "0", "olfactory atmosphere" as "1", "dosage" as "2", "details" as "3", "size grid" as "4"
     HowToEN: Detailed usage instructions
     HowToPT: Detailed usage instructions in european portuguese of Portugal
@@ -154,5 +157,6 @@ CRITICAL: Never include size/quantity information in product titles or URLs - th
 CRITICAL: Portuguese fields must be COMPLETELY TRANSLATED - translate ALL words to European Portuguese of Portugal except brand names
 Word Count Validation
 Before completing your response, verify that the closing pitch section contains between 100-120 words. If it's outside this range, revise it to meet the requirement. Word count is a strict requirement, not a guideline.
+
 
 
