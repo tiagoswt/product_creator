@@ -29,7 +29,7 @@ DEFAULT_PROVIDER = "openai"  # Changed from "groq" to "openai"
 DEFAULT_MODEL = "gpt-4o-mini-2024-07-18"  # Set to GPT-4o
 
 # Dedicated model for HScode classification
-HSCODE_MODEL = "openai/gpt-oss-120b"
+HSCODE_MODEL = "deepseek-r1-distill-llama-70b"
 HSCODE_PROVIDER = "groq"
 HSCODE_TEMPERATURE = 0.1
 
@@ -135,3 +135,4 @@ EVALUATION_CACHE_ENABLED = True  # Cache evaluation results for identical inputs
 # OpenEvals feature flags (legacy)
 # OPENEVALS_DEBUG = False
 # EVALUATION_CACHE_ENABLED = True
+
