@@ -22,4 +22,8 @@ Respond ONLY with valid JSON:
 {{
   "hscode": ""
 }}
+
 ```
+
+## Important Notes
+CRITICAL: Before completing your response, verify that the hscode in the JSON response is in the allowed HS Codes list
