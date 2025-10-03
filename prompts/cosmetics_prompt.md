@@ -130,7 +130,7 @@ Respond ONLY with valid JSON in this exact structure:
       "Depth": 1,
       "Weight": 1,
       "priceSale":"",
-      "priceRecommended":""
+      "priceRecommended":"",
       "supplierPrice":""
     }
 ]
@@ -148,4 +148,3 @@ CRITICAL: Never include size/quantity information in product titles or URLs - th
 CRITICAL: Portuguese fields must be COMPLETELY TRANSLATED - translate ALL words to European Portuguese of Portugal except brand names
 Word Count Validation
 Before completing your response, verify that the closing pitch section contains between 100-120 words. If it's outside this range, revise it to meet the requirement. Word count is a strict requirement, not a guideline.
-
