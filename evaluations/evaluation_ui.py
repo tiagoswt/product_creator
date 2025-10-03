@@ -298,3 +298,4 @@ def render_batch_quality_summary():
 
     except Exception as e:
         st.warning(f"Could not display quality summary: {str(e)}")
+
