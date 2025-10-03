@@ -244,6 +244,9 @@ class EvaluationDB:
                 evaluation_id INTEGER REFERENCES evaluations(id) ON DELETE CASCADE,
                 human_rating INTEGER NOT NULL CHECK (human_rating BETWEEN 1 AND 5),
                 notes TEXT DEFAULT '',
+                user_id UUID REFERENCES users(id),
+                created_by_username VARCHAR(50) DEFAULT '',
+                created_by_name VARCHAR(100) DEFAULT '',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """
@@ -274,54 +277,82 @@ class EvaluationDB:
     def _migrate_schema_if_needed(self):
         """Add user tracking columns if they don't exist."""
         try:
-            # Check if new columns exist
-            columns_query = """
-            SELECT column_name 
-            FROM information_schema.columns 
-            WHERE table_name = 'evaluations' 
+            # Check if new columns exist in evaluations table
+            evaluations_columns_query = """
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name = 'evaluations'
             AND column_name IN ('brand', 'product_name', 'input_text', 'extracted_json', 'user_id', 'created_by_username', 'created_by_name')
             """
 
-            existing_columns = run_cached_query(columns_query)
-            existing_column_names = [row["column_name"] for row in existing_columns]
+            # Check if user tracking columns exist in human_feedback table
+            feedback_columns_query = """
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name = 'human_feedback'
+            AND column_name IN ('user_id', 'created_by_username', 'created_by_name')
+            """
+
+            existing_evaluations_columns = run_cached_query(evaluations_columns_query)
+            existing_evaluations_column_names = [row["column_name"] for row in existing_evaluations_columns]
+
+            existing_feedback_columns = run_cached_query(feedback_columns_query)
+            existing_feedback_column_names = [row["column_name"] for row in existing_feedback_columns]
 
             # Add missing columns
             migrations = []
 
-            if "brand" not in existing_column_names:
+            # Evaluations table migrations
+            if "brand" not in existing_evaluations_column_names:
                 migrations.append(
                     "ALTER TABLE evaluations ADD COLUMN brand VARCHAR(255) DEFAULT 'Unknown Brand'"
                 )
 
-            if "product_name" not in existing_column_names:
+            if "product_name" not in existing_evaluations_column_names:
                 migrations.append(
                     "ALTER TABLE evaluations ADD COLUMN product_name VARCHAR(500) DEFAULT 'Unknown Product'"
                 )
 
-            if "input_text" not in existing_column_names:
+            if "input_text" not in existing_evaluations_column_names:
                 migrations.append(
                     "ALTER TABLE evaluations ADD COLUMN input_text TEXT DEFAULT ''"
                 )
 
-            if "extracted_json" not in existing_column_names:
+            if "extracted_json" not in existing_evaluations_column_names:
                 migrations.append(
                     "ALTER TABLE evaluations ADD COLUMN extracted_json JSONB DEFAULT '{}'"
                 )
 
-            # PHASE 3: Add user tracking columns
-            if "user_id" not in existing_column_names:
+            # PHASE 3: Add user tracking columns to evaluations
+            if "user_id" not in existing_evaluations_column_names:
                 migrations.append(
                     "ALTER TABLE evaluations ADD COLUMN user_id UUID REFERENCES users(id)"
                 )
 
-            if "created_by_username" not in existing_column_names:
+            if "created_by_username" not in existing_evaluations_column_names:
                 migrations.append(
                     "ALTER TABLE evaluations ADD COLUMN created_by_username VARCHAR(50) DEFAULT ''"
                 )
 
-            if "created_by_name" not in existing_column_names:
+            if "created_by_name" not in existing_evaluations_column_names:
                 migrations.append(
                     "ALTER TABLE evaluations ADD COLUMN created_by_name VARCHAR(100) DEFAULT ''"
+                )
+
+            # Add user tracking columns to human_feedback table
+            if "user_id" not in existing_feedback_column_names:
+                migrations.append(
+                    "ALTER TABLE human_feedback ADD COLUMN user_id UUID REFERENCES users(id)"
+                )
+
+            if "created_by_username" not in existing_feedback_column_names:
+                migrations.append(
+                    "ALTER TABLE human_feedback ADD COLUMN created_by_username VARCHAR(50) DEFAULT ''"
+                )
+
+            if "created_by_name" not in existing_feedback_column_names:
+                migrations.append(
+                    "ALTER TABLE human_feedback ADD COLUMN created_by_name VARCHAR(100) DEFAULT ''"
                 )
 
             for migration in migrations:
@@ -687,16 +718,30 @@ class EvaluationDB:
         return results
 
     def store_human_feedback(
-        self, evaluation_id: int, human_rating: int, notes: str = ""
+        self, evaluation_id: int, human_rating: int, notes: str = "",
+        user_id: str = None, username: str = None, user_name: str = None
     ) -> int:
-        """Store human feedback for an evaluation."""
+        """Store human feedback for an evaluation with user attribution."""
+
+        # Get user context from session state if not provided
+        if not user_id and "current_user" in st.session_state:
+            current_user = st.session_state["current_user"]
+            user_id = current_user.get("id")
+            username = current_user.get("username", "unknown")
+            user_name = current_user.get("name", "Unknown User")
+
+        # Default values for user attribution
+        user_id = user_id or None
+        username = username or "system"
+        user_name = user_name or "System"
+
         query = """
-        INSERT INTO human_feedback (evaluation_id, human_rating, notes)
-        VALUES (%s, %s, %s)
+        INSERT INTO human_feedback (evaluation_id, human_rating, notes, user_id, created_by_username, created_by_name)
+        VALUES (%s, %s, %s, %s, %s, %s)
         RETURNING id
         """
         result = run_write_query(
-            query, (evaluation_id, human_rating, notes), fetch_result=True
+            query, (evaluation_id, human_rating, notes, user_id, username, user_name), fetch_result=True
         )
 
         run_cached_query.clear()
