@@ -363,15 +363,37 @@ def process_hscode_with_deepseek(product_data, product_type=None):
             else:
                 response_text = response
 
-            # Find JSON in the response
+            # Find JSON in the response - handle multiple formats
+            # 1. Try JSON code block
             json_match = re.search(r"```json\n(.*?)\n```", response_text, re.DOTALL)
             if json_match:
                 json_str = json_match.group(1)
             else:
-                json_str = response_text
+                # 2. Try extracting JSON from <think> tags
+                think_match = re.search(r"</think>\s*(\{.*?\})", response_text, re.DOTALL)
+                if think_match:
+                    json_str = think_match.group(1)
+                else:
+                    # 3. Try finding any JSON object
+                    json_obj_match = re.search(r"\{.*?\}", response_text, re.DOTALL)
+                    if json_obj_match:
+                        json_str = json_obj_match.group(0)
+                    else:
+                        json_str = response_text
 
             hscode_data = json.loads(json_str)
-            return hscode_data.get("hscode")
+            hscode = hscode_data.get("hscode")
+
+            # Validate and clean the HScode
+            if hscode:
+                # Remove any non-digit characters and ensure it's exactly 8 digits
+                clean_hscode = re.sub(r'\D', '', str(hscode))
+                if len(clean_hscode) == 8:
+                    return clean_hscode
+                else:
+                    st.warning(f"Invalid HScode format: {hscode}. Expected 8 digits, got {len(clean_hscode)}")
+
+            return None
         except Exception as e:
             st.error(f"Error parsing HScode data: {e}")
             return get_hscode_from_product_data(product_data)  # Fallback to existing
