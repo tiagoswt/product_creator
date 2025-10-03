@@ -761,3 +761,7 @@ def require_auth(auth_manager: UserManager):
     if not auth_manager.is_authenticated():
         auth_manager.show_login_page()
         st.stop()
+
+    if not auth_manager.is_authenticated():
+        auth_manager.show_login_page()
+        st.stop()
