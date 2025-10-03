@@ -677,3 +677,4 @@ class ConfigurationForm:
 
         # Don't clear product_type_selector and base_product_input
         # so user can easily add multiple products of the same type
+
