@@ -67,4 +67,3 @@ Ensure all JSON syntax is valid
 Write the ingredients content in English
 CRITICAL: Never include size/quantity information in itemDescriptionEN or itemDescriptionPT - this information belongs only in itemCapacity and itemCapacityUnits
 CRITICAL: Portuguese fields must be COMPLETELY TRANSLATED - translate ALL words to Portuguese except brand names
-
