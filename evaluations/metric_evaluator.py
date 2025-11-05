@@ -609,4 +609,3 @@ def create_fixed_evaluator() -> MetricEvaluator:
 
 # Backward compatibility
 ThreeMetricEvaluator = MetricEvaluator
-

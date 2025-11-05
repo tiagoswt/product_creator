@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/tiago/Downloads/**)",
+      "Bash(streamlit run:*)",
+      "Bash(set)",
+      "Bash(findstr:*)",
+      "WebFetch(domain:docs.langchain.com)",
+      "Bash(python:*)",
+      "Bash(tree:*)",
+      "Bash(git push:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git log:*)",
+      "Bash(git reset:*)",
+      "Bash(git rm:*)",
+      "Bash(git rev-list:*)",
+      "Bash(while read f)",
+      "Bash(do git rm --cached $f)",
+      "Bash(done)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

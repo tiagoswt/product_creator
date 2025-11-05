@@ -569,5 +569,3 @@ def get_config_creators_summary() -> Dict[str, Dict]:
             creators[username]["pending_count"] += 1
 
     return creators
-
-

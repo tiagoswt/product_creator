@@ -377,4 +377,3 @@ class ExportHandler:
     CNP: {result.get('CNP', 'N/A')}"""
 
         return copy_text
-

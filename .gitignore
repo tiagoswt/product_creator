@@ -1,2 +1,46 @@
 # Streamlit secrets
 .streamlit/secrets.toml
+
+# Environment variables
+.env
+.env.local
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# Cache and results files that may contain API keys
+**/cache/
+**/enhanced_cache/
+**/simplified_cache/
+**/simplified_results/
+**/enhanced_results/
+*_cache.json
+api_cache.json
+config_and_stats_*.json
+**/*_config.json
+
+# Development folders
+**/logistics/
+**/category/

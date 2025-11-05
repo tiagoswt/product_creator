@@ -477,4 +477,3 @@ def get_creators_list() -> List[Dict]:
         return db.get_creators_list()
     except Exception:
         return []
-

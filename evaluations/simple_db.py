@@ -1392,4 +1392,3 @@ class EvaluationDB:
 def get_db() -> EvaluationDB:
     """Get or create the global database instance with Streamlit caching."""
     return EvaluationDB()
-

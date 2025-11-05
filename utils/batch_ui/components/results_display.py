@@ -1269,5 +1269,3 @@ class ResultsDisplay:
                     use_container_width=True,
                     help="Dropbox integration not available",
                 )
-
-

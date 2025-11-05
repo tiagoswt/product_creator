@@ -262,4 +262,3 @@ EAN: {result.get('EAN', 'N/A')}
 CNP: {result.get('CNP', 'N/A')}"""
 
         return copy_text
-

@@ -3,6 +3,7 @@
 
 # LLM Models
 GROQ_MODELS = [
+    "deepseek-r1-distill-llama-70b",
     "llama3-70b-8192",
     "llama3-8b-8192",
     "meta-llama/llama-4-scout-17b-16e-instruct",
@@ -134,6 +135,3 @@ EVALUATION_CACHE_ENABLED = True  # Cache evaluation results for identical inputs
 # OpenEvals feature flags (legacy)
 # OPENEVALS_DEBUG = False
 # EVALUATION_CACHE_ENABLED = True
-
-
-

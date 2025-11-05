@@ -481,4 +481,3 @@ class URLFormatter:
             preview += f"  ... and {len(url_list) - max_display} more"
 
         return preview.strip()
-

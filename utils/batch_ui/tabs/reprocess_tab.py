@@ -387,5 +387,3 @@ def _render_reprocessing_history(marked_configs):
                             j < len(config.processing_attempts) - 1
                         ):  # Don't show separator after last item
                             st.markdown("---")
-
-
