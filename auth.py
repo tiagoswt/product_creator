@@ -28,13 +28,29 @@ class UserManager:
     def _get_postgres_connection(_self):
         """Get cached PostgreSQL connection for authentication"""
         try:
-            # Use Streamlit secrets for PostgreSQL connection
-            connection_params = {
-                **st.secrets["postgres"],
-                "sslmode": "require",
-                "connect_timeout": 10,
-                "application_name": "sweetcare_auth",
+            # Valid PostgreSQL connection parameters
+            VALID_PG_PARAMS = {
+                "host", "database", "user", "password", "port", "sslmode",
+                "connect_timeout", "application_name", "dbname", "options",
+                "client_encoding", "fallback_application_name",
+                "keepalives", "keepalives_idle", "keepalives_interval",
+                "keepalives_count", "tcp_user_timeout", "sslcert", "sslkey",
+                "sslrootcert", "sslcrl", "requiressl", "gssencmode", "channel_binding"
             }
+
+            # Use Streamlit secrets for PostgreSQL connection, filtering out non-PG params
+            postgres_secrets = st.secrets.get("postgres", {})
+            connection_params = {
+                k: v for k, v in postgres_secrets.items()
+                if k.lower() in VALID_PG_PARAMS
+            }
+
+            # Add/override default connection settings
+            connection_params.update({
+                "sslmode": connection_params.get("sslmode", "require"),
+                "connect_timeout": int(connection_params.get("connect_timeout", 10)),
+                "application_name": connection_params.get("application_name", "sweetcare_auth"),
+            })
 
             # Try connection pool port first (6543), then direct port (5432)
             original_port = connection_params.get("port", "5432")

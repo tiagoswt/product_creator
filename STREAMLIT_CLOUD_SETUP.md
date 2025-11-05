@@ -41,7 +41,7 @@ Copy and paste this template into the secrets editor, replacing the placeholder 
 
 ```toml
 # ============================================
-# API Keys (Required)
+# API Keys (Required - Root Level)
 # ============================================
 
 # OpenAI API Key (Required for GPT models)
@@ -51,7 +51,7 @@ OPENAI_API_KEY = "sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 GROQ_API_KEY = "gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 # ============================================
-# LangSmith Observability (Optional but Recommended)
+# LangSmith Observability (Optional but Recommended - Root Level)
 # ============================================
 
 # LangSmith API Key for tracing and monitoring
@@ -67,29 +67,31 @@ LANGSMITH_PROJECT = "ai_product_creator"
 LANGSMITH_ENDPOINT = "https://api.smith.langchain.com"
 
 # ============================================
-# Cloud Storage (Optional)
+# Cloud Storage (Optional - Root Level)
 # ============================================
 
 # Dropbox access token for automatic file uploads
 DROPBOX_ACCESS_TOKEN = "sl.xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 # ============================================
-# PostgreSQL Database (Required for Auth)
+# PostgreSQL Database (Required for Auth - Separate Section)
 # ============================================
 
-# These are typically auto-configured by Streamlit Cloud if using Supabase
-# If not, add your PostgreSQL connection details:
+# IMPORTANT: PostgreSQL settings MUST be in [postgres] section
+# DO NOT put other API keys inside this section!
 
-[connections.postgresql]
-url = "postgresql://user:password@host:port/database"
-
-# Or individual components:
-# DB_HOST = "your-project.supabase.co"
-# DB_NAME = "postgres"
-# DB_USER = "postgres"
-# DB_PASSWORD = "your-password"
-# DB_PORT = "5432"
+[postgres]
+host = "aws-0-eu-west-3.pooler.supabase.com"
+database = "postgres"
+user = "postgres.ubmzhttmrvqcqtvzlmah"
+password = "your-database-password"
+port = "6543"
+sslmode = "require"
+connect_timeout = "20"
+application_name = "ai_product_creator_app"
 ```
+
+**⚠️ IMPORTANT:** Keep all API keys (OPENAI, GROQ, LANGSMITH, DROPBOX) at the **root level** of your secrets file. Only PostgreSQL connection parameters should be inside the `[postgres]` section. Mixing them will cause connection errors!
 
 ### Step 3: Save and Deploy
 
