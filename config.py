@@ -42,6 +42,8 @@ PROMPT_DIRECTORY = "prompts"
 COSMETICS_PROMPT = "cosmetics_prompt.md"
 FRAGRANCE_PROMPT = "fragrance_prompt.md"
 SUBTYPE_PROMPT = "subtype_prompt.md"
+SUPPLEMENT_PROMPT = "supplement_prompt.md"
+TECH_PROMPT = "tech_prompt.md"
 HSCODE_PROMPT = "hscode_prompt.md"
 
 # Session state keys

@@ -424,6 +424,10 @@ def process_with_llm(text, product_type, llm, run_name=None):
         prompt_content = load_prompt_from_file(config.FRAGRANCE_PROMPT)
     elif product_type == "subtype":
         prompt_content = load_prompt_from_file(config.SUBTYPE_PROMPT)
+    elif product_type == "supplement":
+        prompt_content = load_prompt_from_file(config.SUPPLEMENT_PROMPT)
+    elif product_type == "tech":
+        prompt_content = load_prompt_from_file(config.TECH_PROMPT)
     else:
         st.error(f"Unknown product type: {product_type}")
         return None

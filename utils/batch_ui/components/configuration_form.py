@@ -62,7 +62,7 @@ class ConfigurationForm:
         # Product type selection OUTSIDE the form so it updates immediately
         product_type = st.selectbox(
             "Product Type",
-            ["cosmetics", "fragrance", "subtype"],
+            ["cosmetics", "fragrance", "subtype", "supplement", "tech"],
             help="Choose the type of product to extract",
             key="product_type_selector",
         )
