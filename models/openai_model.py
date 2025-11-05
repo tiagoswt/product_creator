@@ -17,10 +17,10 @@ def get_openai_llm(
     Returns:
         ChatOpenAI: Initialized ChatOpenAI instance or None if API key is not available
     """
-    # Try to load from environment variables directly
-    api_key = os.getenv(config.ENV_OPENAI_API_KEY)
+    # Try to load from Streamlit secrets or environment variables
+    api_key = config.get_secret_or_env(config.ENV_OPENAI_API_KEY)
 
-    # If API key is not found in environment, prompt the user
+    # If API key is not found, prompt the user
     if not api_key:
         api_key = st.sidebar.text_input(
             "Enter your OpenAI API Key", type="password", key="openai_api_key_input"

@@ -1,6 +1,33 @@
 # Configuration file for the E-commerce Product Extractor
 # PHASE 3: Updated with OpenEvals integration settings
 
+import os
+
+
+def get_secret_or_env(key, default=None):
+    """
+    Get value from Streamlit secrets or environment variables
+    Streamlit secrets take precedence for better Cloud compatibility
+
+    Args:
+        key: The key to look up
+        default: Default value if not found
+
+    Returns:
+        The value from secrets or environment, or default
+    """
+    try:
+        import streamlit as st
+        # Try Streamlit secrets first (works in Streamlit Cloud)
+        if hasattr(st, 'secrets') and key in st.secrets:
+            return st.secrets[key]
+    except Exception:
+        pass
+
+    # Fall back to environment variables (works locally with .env)
+    return os.getenv(key, default)
+
+
 # LLM Models
 GROQ_MODELS = [
     "deepseek-r1-distill-llama-70b",
