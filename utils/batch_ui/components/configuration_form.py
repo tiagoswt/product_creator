@@ -1,5 +1,6 @@
 """
 Configuration form component for product setup with automatic PDF preview
+ENHANCED: Draft auto-save, smart header detection, multi-select, unified preview
 """
 
 import streamlit as st
@@ -8,6 +9,7 @@ import time
 from processors.pdf_processor import render_pdf_preview
 from processors.excel_processor import process_excel_file
 from utils.product_config import ProductConfig, add_product_config
+from utils.draft_manager import create_draft_manager
 import config
 
 
@@ -19,6 +21,8 @@ class ConfigurationForm:
         # Initialize form counter for dynamic keys
         if "form_counter" not in st.session_state:
             st.session_state.form_counter = 0
+        # Initialize draft manager
+        self.draft_manager = create_draft_manager()
 
     def _initialize_data_source_states(self):
         """Initialize data source states in session"""
@@ -44,6 +48,17 @@ class ConfigurationForm:
 
     def render(self):
         """Render the complete configuration form"""
+
+        # IMPROVEMENT #1: Draft Recovery Banner
+        recovered_draft_id = self.draft_manager.render_draft_recovery_banner()
+        if recovered_draft_id:
+            # User clicked to recover a draft
+            draft_data = self.draft_manager.load_draft(recovered_draft_id)
+            if draft_data:
+                self._restore_draft_data(draft_data)
+                st.success("✅ Draft recovered successfully!")
+                st.rerun()
+
         # Product type selection OUTSIDE the form so it updates immediately
         product_type = st.selectbox(
             "Product Type",
@@ -81,6 +96,12 @@ class ConfigurationForm:
 
         # Excel source third (outside form for immediate feedback)
         selected_excel_rows = self._render_excel_section()
+
+        # Auto-save draft after selections
+        self._trigger_auto_save()
+
+        # IMPROVEMENT #4: Unified Data Preview
+        self._render_unified_preview(website_url, selected_pdf_pages, selected_excel_rows)
 
         # Form only for final submission
         st.markdown("---")
@@ -328,58 +349,60 @@ class ConfigurationForm:
                 # Show the dataframe with row indices
                 st.dataframe(preview_df, use_container_width=True, height=300)
 
-                # Header row selection based on preview
+                # IMPROVEMENT #2: Smart Header Row Detection
                 total_rows = len(preview_df)
-                st.write("**🏷️ Select Header Row:**")
+                st.write("**🏷️ Header Row Selection:**")
 
-                header_row = st.selectbox(
-                    "Which row contains the column headers?",
-                    options=list(range(total_rows)),
-                    index=0,
-                    format_func=lambda x: f"Row {x} - {self._format_row_preview(preview_df.iloc[x])}",
-                    help="Select the row that contains your column headers",
-                    key=f"excel_header_row_selector_{st.session_state.form_counter}",
-                )
+                # Detect header row automatically
+                detected_header_row = self._detect_header_row_smart(preview_df)
 
-                # Show selected header row highlight
-                if header_row is not None:
-                    st.write(f"**Selected header row {header_row}:**")
-                    header_preview = preview_df.iloc[header_row : header_row + 1]
+                # Show AI suggestion
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    st.info(f"✨ **AI detected header at row {detected_header_row}**")
+                    header_preview = preview_df.iloc[
+                        detected_header_row : detected_header_row + 1
+                    ]
                     st.dataframe(
                         header_preview, use_container_width=True, hide_index=False
                     )
+                with col2:
+                    if st.button(
+                        "✅ Accept",
+                        key=f"accept_header_{st.session_state.form_counter}",
+                        type="primary",
+                        help="Use AI-detected header row",
+                        use_container_width=True,
+                    ):
+                        self._apply_header_row(detected_header_row)
 
-                # Process data with selected header row
-                if st.button(
-                    "✅ Apply Header Row",
-                    type="primary",
-                    key=f"apply_header_row_{st.session_state.form_counter}",
-                ):
-                    with st.spinner("Processing Excel file with selected headers..."):
-                        try:
-                            st.session_state.current_excel_file.seek(0)
-                            processed_df = process_excel_file(
-                                st.session_state.current_excel_file, header=header_row
-                            )
-                            if processed_df is not None and not processed_df.empty:
-                                st.session_state.processed_excel_df = processed_df
-                                st.session_state.excel_header_row = header_row
-                                st.success(
-                                    f"✅ Data processed with row {header_row} as headers"
-                                )
-                                st.rerun()
-                            else:
-                                st.error(
-                                    "❌ Error processing file with selected headers. The result is empty."
-                                )
-                                # Clear the processed data
-                                if "processed_excel_df" in st.session_state:
-                                    del st.session_state["processed_excel_df"]
-                        except Exception as e:
-                            st.error(f"❌ Error processing Excel: {str(e)}")
-                            # Clear the processed data on error
-                            if "processed_excel_df" in st.session_state:
-                                del st.session_state["processed_excel_df"]
+                # Manual override option in expander
+                with st.expander("🎯 Manually Override Header Row", expanded=False):
+                    header_row_manual = st.selectbox(
+                        "Select a different header row:",
+                        options=list(range(total_rows)),
+                        index=detected_header_row,
+                        format_func=lambda x: f"Row {x} - {self._format_row_preview(preview_df.iloc[x])}",
+                        help="Manually select the row that contains your column headers",
+                        key=f"excel_header_row_manual_{st.session_state.form_counter}",
+                    )
+
+                    # Show manual selection preview
+                    if header_row_manual != detected_header_row:
+                        st.write(f"**Preview of row {header_row_manual}:**")
+                        manual_preview = preview_df.iloc[
+                            header_row_manual : header_row_manual + 1
+                        ]
+                        st.dataframe(
+                            manual_preview, use_container_width=True, hide_index=False
+                        )
+
+                    if st.button(
+                        "✅ Apply Manual Selection",
+                        key=f"apply_manual_header_{st.session_state.form_counter}",
+                        type="secondary",
+                    ):
+                        self._apply_header_row(header_row_manual)
 
                 # Show row selection if data is processed with headers
                 if (
@@ -387,7 +410,6 @@ class ConfigurationForm:
                     and st.session_state.processed_excel_df is not None
                     and not st.session_state.processed_excel_df.empty
                     and st.session_state.current_excel_file
-                    and st.session_state.get("excel_header_row") == header_row
                 ):
                     st.markdown("---")
                     st.write("**📋 Processed Data with Headers:**")
@@ -397,7 +419,53 @@ class ConfigurationForm:
                         processed_preview = st.session_state.processed_excel_df.head(10)
                         st.dataframe(processed_preview, use_container_width=True)
 
-                        selected_excel_rows = self._render_excel_row_selection()
+                        # NEW FEATURE: Batch Mode Toggle
+                        st.markdown("---")
+                        st.write("**📦 Import Mode:**")
+
+                        batch_mode = st.checkbox(
+                            "Batch Mode: Each row = 1 product",
+                            value=False,
+                            help="Automatically create one product configuration per row (Excel only)",
+                            key=f"excel_batch_mode_{st.session_state.form_counter}"
+                        )
+
+                        if batch_mode:
+                            # Count non-empty rows
+                            processed_df = st.session_state.processed_excel_df
+                            non_empty_df = processed_df.dropna(how='all')
+                            total_rows = len(processed_df)
+                            valid_rows = len(non_empty_df)
+                            empty_rows = total_rows - valid_rows
+
+                            # Show batch mode info
+                            if empty_rows > 0:
+                                st.info(f"✨ **Batch Mode Active:** Creating {valid_rows} product configs ({empty_rows} empty rows will be skipped)")
+                            else:
+                                st.info(f"✨ **Batch Mode Active:** Creating {valid_rows} product configurations")
+
+                            # Warning for large files
+                            if valid_rows > 100:
+                                st.warning(f"⚠️ Creating {valid_rows} configurations may take several minutes to process.")
+
+                            if valid_rows > 500:
+                                st.error(f"❌ Maximum 500 products per batch. Your file has {valid_rows} valid rows. Please split the file.")
+
+                            # Show preview of first 3 rows
+                            st.write("**Preview (first 3 rows as examples):**")
+                            st.dataframe(non_empty_df.head(3), use_container_width=True)
+                            if valid_rows > 3:
+                                st.caption(f"... and {valid_rows - 3} more rows")
+
+                            # Store valid rows count for later use
+                            st.session_state[f"batch_valid_rows_{st.session_state.form_counter}"] = valid_rows
+
+                            # Skip row selection in batch mode
+                            selected_excel_rows = []
+                        else:
+                            # Normal mode: show row selection
+                            selected_excel_rows = self._render_excel_row_selection()
+
                     except Exception as e:
                         st.error(f"❌ Error displaying processed data: {str(e)}")
                         # Clear the problematic processed data
@@ -423,7 +491,7 @@ class ConfigurationForm:
         return selected_excel_rows
 
     def _render_excel_row_selection(self):
-        """Render Excel row selection interface with additional safety checks"""
+        """IMPROVEMENT #3: Excel row selection with multi-select widget"""
         # Add safety check for processed_excel_df
         if (
             "processed_excel_df" not in st.session_state
@@ -440,75 +508,87 @@ class ConfigurationForm:
             st.warning("⚠️ No data rows available after header processing.")
             return []
 
-        st.write(f"Select rows from {num_rows} available:")
+        # Initialize selected rows in session state if not present
+        if "excel_rows_selected" not in st.session_state:
+            st.session_state.excel_rows_selected = []
 
-        # Row selection method
-        row_selection_method = st.radio(
-            "Row selection:",
-            ["Select All", "Row Range", "Individual Rows"],
-            key=f"excel_row_method_{st.session_state.form_counter}",
-        )
+        st.write(f"**📋 Select Rows to Process** ({num_rows} available)")
 
+        # Quick action buttons row
+        action_col1, action_col2, action_col3, action_col4 = st.columns(4)
+
+        with action_col1:
+            if st.button(
+                "☑️ Select All",
+                key=f"excel_select_all_{st.session_state.form_counter}",
+                use_container_width=True,
+            ):
+                st.session_state.excel_rows_selected = list(range(num_rows))
+                st.rerun()
+
+        with action_col2:
+            if st.button(
+                "⬜ Clear All",
+                key=f"excel_clear_all_{st.session_state.form_counter}",
+                use_container_width=True,
+            ):
+                st.session_state.excel_rows_selected = []
+                st.rerun()
+
+        with action_col3:
+            if st.button(
+                "🔄 Invert",
+                key=f"excel_invert_{st.session_state.form_counter}",
+                use_container_width=True,
+                help="Invert selection",
+            ):
+                all_rows = set(range(num_rows))
+                current_selection = set(st.session_state.excel_rows_selected)
+                st.session_state.excel_rows_selected = list(all_rows - current_selection)
+                st.rerun()
+
+        with action_col4:
+            selected_count = len(st.session_state.excel_rows_selected)
+            st.metric("Selected", selected_count, delta=None)
+
+        # Multi-select widget
         try:
-            if row_selection_method == "Select All":
-                selected_excel_rows = list(range(num_rows))
-                st.success(f"All {num_rows} rows selected")
-            elif row_selection_method == "Row Range":
-                col_start, col_end = st.columns(2)
-                with col_start:
-                    start_row = st.number_input(
-                        "Start row",
-                        min_value=0,
-                        max_value=num_rows - 1,
-                        value=0,
-                        key=f"excel_start_row_{st.session_state.form_counter}",
-                    )
-                with col_end:
-                    end_row = st.number_input(
-                        "End row",
-                        min_value=start_row,
-                        max_value=num_rows - 1,
-                        value=min(4, num_rows - 1),
-                        key=f"excel_end_row_{st.session_state.form_counter}",
-                    )
-                selected_excel_rows = list(range(start_row, end_row + 1))
-                st.info(
-                    f"Rows {start_row} to {end_row} selected ({len(selected_excel_rows)} rows)"
-                )
-            else:  # Individual Rows
-                selected_rows_input = st.text_input(
-                    "Enter row numbers (comma-separated, e.g., 0,2,4):",
-                    placeholder="0,1,2",
-                    key=f"excel_individual_rows_{st.session_state.form_counter}",
-                )
-                if selected_rows_input:
-                    try:
-                        row_numbers = [
-                            int(r.strip()) for r in selected_rows_input.split(",")
-                        ]
-                        selected_excel_rows = [
-                            r for r in row_numbers if 0 <= r < num_rows
-                        ]
-                        if len(selected_excel_rows) != len(row_numbers):
-                            invalid_rows = [
-                                r for r in row_numbers if r < 0 or r >= num_rows
-                            ]
-                            st.warning(f"⚠️ Invalid row numbers ignored: {invalid_rows}")
-                        st.success(
-                            f"Selected {len(selected_excel_rows)} rows: {', '.join(str(r) for r in selected_excel_rows)}"
-                        )
-                    except ValueError:
-                        selected_excel_rows = []
-                        st.error(
-                            "Invalid row numbers. Please use comma-separated numbers."
-                        )
-                else:
-                    selected_excel_rows = []
+            # Get first column name for preview
+            first_col = processed_df.columns[0] if len(processed_df.columns) > 0 else None
+
+            selected_rows = st.multiselect(
+                "Select rows (click to add/remove):",
+                options=list(range(num_rows)),
+                default=st.session_state.excel_rows_selected,
+                format_func=lambda x: (
+                    f"Row {x}: {str(processed_df.iloc[x][first_col])[:50]}"
+                    if first_col
+                    else f"Row {x}"
+                ),
+                key=f"excel_row_multiselect_{st.session_state.form_counter}",
+                help="Use dropdown or quick action buttons above to select rows",
+            )
+
+            # Update session state
+            st.session_state.excel_rows_selected = selected_rows
+
+            # Show live preview of selected rows
+            if selected_rows:
+                st.write(f"**Preview of selected rows** (showing first 5 of {len(selected_rows)}):")
+                preview_rows = selected_rows[:5]
+                preview_df = processed_df.iloc[preview_rows]
+                st.dataframe(preview_df, use_container_width=True, height=200)
+
+                if len(selected_rows) > 5:
+                    st.caption(f"... and {len(selected_rows) - 5} more rows")
+            else:
+                st.info("👆 Use the dropdown or quick action buttons to select rows")
+
+            return selected_rows
+
         except Exception as e:
             st.error(f"❌ Error in row selection: {str(e)}")
-            selected_excel_rows = []
-
-        return selected_excel_rows
+            return []
 
     def _format_row_preview(self, row):
         """Format a row for preview in the header selection dropdown"""
@@ -561,7 +641,49 @@ class ConfigurationForm:
         product_type,
         base_product,
     ):
-        """Handle form submission and create product configuration"""
+        """Handle form submission with batch mode support"""
+
+        # Check if batch mode is active
+        batch_mode_key = f"excel_batch_mode_{st.session_state.form_counter}"
+        is_batch_mode = st.session_state.get(batch_mode_key, False)
+
+        if is_batch_mode:
+            # ========== BATCH MODE HANDLING ==========
+
+            # Validate: max 500 rows
+            valid_rows_key = f"batch_valid_rows_{st.session_state.form_counter}"
+            valid_rows = st.session_state.get(valid_rows_key, 0)
+
+            if valid_rows > 500:
+                st.error("❌ Cannot create more than 500 products in batch mode. Please split your file.")
+                return
+
+            if valid_rows == 0:
+                st.error("❌ No valid rows to process. Please check your Excel file.")
+                return
+
+            # Validate: no other sources
+            has_pdf = st.session_state.current_pdf_file and selected_pdf_pages
+            has_website = website_url and website_url.strip()
+
+            if has_pdf or has_website:
+                st.error("❌ Batch mode works with Excel only. Please remove PDF/Website sources or disable batch mode.")
+                return
+
+            # Validate base_product for subtype
+            if product_type == "subtype" and not base_product.strip():
+                st.error("❌ Please enter a base product for subtype classification.")
+                return
+
+            # Execute batch mode
+            self._create_batch_configurations(
+                product_type=product_type,
+                base_product=base_product
+            )
+            return  # Early return after batch processing
+
+        # ========== NORMAL MODE HANDLING ==========
+
         # Validate that at least one data source is selected
         has_pdf = st.session_state.current_pdf_file and selected_pdf_pages
         has_excel = st.session_state.current_excel_file and selected_excel_rows
@@ -678,3 +800,348 @@ class ConfigurationForm:
         # Don't clear product_type_selector and base_product_input
         # so user can easily add multiple products of the same type
 
+        # Mark draft as completed
+        self.draft_manager.mark_draft_completed()
+
+    # ========== IMPROVEMENT #2: Smart Header Detection ==========
+
+    def _detect_header_row_smart(self, preview_df: pd.DataFrame) -> int:
+        """
+        AI-powered heuristic to detect the header row in an Excel file
+
+        Args:
+            preview_df: DataFrame with raw data (no headers applied)
+
+        Returns:
+            Row index most likely to be the header row
+        """
+        scores = []
+
+        # Check up to first 10 rows
+        for idx, row in preview_df.head(10).iterrows():
+            score = 0
+
+            # Check 1: All cells filled (no nulls) - headers usually complete
+            non_null_count = row.notna().sum()
+            if non_null_count == len(row):
+                score += 3
+
+            # Check 2: All unique values - headers should be unique
+            if row.nunique() == len(row):
+                score += 2
+
+            # Check 3: Short text (column names are usually concise)
+            avg_length = row.astype(str).str.len().mean()
+            if avg_length < 20:
+                score += 2
+
+            # Check 4: Contains common header keywords
+            header_keywords = [
+                "name",
+                "id",
+                "description",
+                "price",
+                "code",
+                "product",
+                "brand",
+                "title",
+                "sku",
+                "category",
+            ]
+            text = " ".join(row.astype(str).values).lower()
+            if any(keyword in text for keyword in header_keywords):
+                score += 3
+
+            # Check 5: No numeric-only values (headers are usually text)
+            numeric_count = sum(
+                pd.api.types.is_numeric_dtype(type(val)) for val in row.values
+            )
+            if numeric_count < len(row) / 2:  # Less than 50% numeric
+                score += 1
+
+            scores.append((idx, score))
+
+        # Return row with highest score
+        best_row = max(scores, key=lambda x: x[1])
+        return best_row[0]
+
+    def _apply_header_row(self, header_row: int):
+        """Apply the selected header row and process the Excel file"""
+        with st.spinner("Processing Excel file with selected headers..."):
+            try:
+                st.session_state.current_excel_file.seek(0)
+                processed_df = process_excel_file(
+                    st.session_state.current_excel_file, header=header_row
+                )
+                if processed_df is not None and not processed_df.empty:
+                    st.session_state.processed_excel_df = processed_df
+                    st.session_state.excel_header_row = header_row
+                    st.success(f"✅ Data processed with row {header_row} as headers")
+                    st.rerun()
+                else:
+                    st.error(
+                        "❌ Error processing file with selected headers. The result is empty."
+                    )
+                    if "processed_excel_df" in st.session_state:
+                        del st.session_state["processed_excel_df"]
+            except Exception as e:
+                st.error(f"❌ Error processing Excel: {str(e)}")
+                if "processed_excel_df" in st.session_state:
+                    del st.session_state["processed_excel_df"]
+
+    # ========== IMPROVEMENT #4: Unified Preview ==========
+
+    def _render_unified_preview(
+        self, website_url: str, selected_pdf_pages: list, selected_excel_rows: list
+    ):
+        """
+        Show unified preview with batch mode support
+
+        Args:
+            website_url: Website URL string
+            selected_pdf_pages: List of selected PDF page indices
+            selected_excel_rows: List of selected Excel row indices
+        """
+        # Check if batch mode is active
+        batch_mode_key = f"excel_batch_mode_{st.session_state.form_counter}"
+        is_batch_mode = st.session_state.get(batch_mode_key, False)
+
+        # Check if any sources selected
+        has_pdf = st.session_state.current_pdf_file and selected_pdf_pages
+        has_website = website_url and website_url.strip()
+
+        # In batch mode, has_excel check is different
+        if is_batch_mode:
+            has_excel = (
+                st.session_state.current_excel_file
+                and st.session_state.processed_excel_df is not None
+            )
+        else:
+            has_excel = st.session_state.current_excel_file and selected_excel_rows
+
+        if not (has_pdf or has_excel or has_website):
+            return  # Nothing to preview
+
+        st.markdown("---")
+        st.subheader("📋 Configuration Summary")
+
+        # Summary metrics row
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            if has_pdf:
+                st.metric(
+                    label="PDF Source",
+                    value=f"{len(selected_pdf_pages)} pages",
+                    delta=st.session_state.current_pdf_file.name,
+                )
+            else:
+                st.metric(label="PDF Source", value="None", delta="Not selected")
+
+        with col2:
+            if has_excel:
+                if is_batch_mode:
+                    # Show batch mode count
+                    valid_rows_key = f"batch_valid_rows_{st.session_state.form_counter}"
+                    valid_rows = st.session_state.get(valid_rows_key, 0)
+                    st.metric(
+                        label="Excel Source (Batch)",
+                        value=f"{valid_rows} products",
+                        delta=st.session_state.current_excel_file.name,
+                    )
+                else:
+                    # Normal mode
+                    st.metric(
+                        label="Excel Source",
+                        value=f"{len(selected_excel_rows)} rows",
+                        delta=st.session_state.current_excel_file.name,
+                    )
+            else:
+                st.metric(label="Excel Source", value="None", delta="Not selected")
+
+        with col3:
+            if has_website:
+                url_count = len(
+                    [u.strip() for u in website_url.split(",") if u.strip()]
+                )
+                st.metric(
+                    label="Website Source", value=f"{url_count} URL(s)", delta="Web scraping"
+                )
+            else:
+                st.metric(label="Website Source", value="None", delta="Not selected")
+
+        # Show batch mode alert
+        if is_batch_mode and has_excel:
+            valid_rows_key = f"batch_valid_rows_{st.session_state.form_counter}"
+            valid_rows = st.session_state.get(valid_rows_key, 0)
+
+            st.info(f"""
+📦 **Batch Mode Active**
+- Each row will create 1 separate product configuration
+- Total configurations to create: **{valid_rows}**
+- Empty rows will be automatically skipped
+            """)
+
+            # Show warning if mixing sources
+            if has_pdf or has_website:
+                st.error("❌ **Batch mode works with Excel only.** Please remove PDF/Website sources or disable batch mode.")
+
+        # Tabbed preview (only if multiple sources)
+        tab_labels = []
+        if has_pdf:
+            tab_labels.append("📄 PDF Preview")
+        if has_excel:
+            tab_labels.append("📊 Excel Preview")
+        if has_website:
+            tab_labels.append("🌐 Website Preview")
+
+        if len(tab_labels) > 1:
+            tabs = st.tabs(tab_labels)
+            tab_idx = 0
+
+            if has_pdf:
+                with tabs[tab_idx]:
+                    page_nums = [p + 1 for p in selected_pdf_pages[:10]]
+                    st.write(f"**Selected pages:** {', '.join(str(p) for p in page_nums)}")
+                    if len(selected_pdf_pages) > 10:
+                        st.caption(f"... and {len(selected_pdf_pages)-10} more pages")
+                    st.caption(f"📄 File: {st.session_state.current_pdf_file.name}")
+                tab_idx += 1
+
+            if has_excel:
+                with tabs[tab_idx]:
+                    processed_df = st.session_state.processed_excel_df
+                    preview_df = processed_df.iloc[selected_excel_rows[:5]]
+                    st.dataframe(preview_df, use_container_width=True)
+                    if len(selected_excel_rows) > 5:
+                        st.caption(f"... and {len(selected_excel_rows)-5} more rows")
+                    st.caption(f"📊 File: {st.session_state.current_excel_file.name}")
+                tab_idx += 1
+
+            if has_website:
+                with tabs[tab_idx]:
+                    urls = [u.strip() for u in website_url.split(",") if u.strip()]
+                    for i, url in enumerate(urls[:5], 1):
+                        st.write(f"{i}. {url}")
+                    if len(urls) > 5:
+                        st.caption(f"... and {len(urls)-5} more URLs")
+
+    # ========== IMPROVEMENT #1: Draft Management ==========
+
+    def _trigger_auto_save(self):
+        """Trigger auto-save of current form state"""
+        form_data = self.draft_manager.get_current_form_data_snapshot()
+        self.draft_manager.auto_save_draft(form_data)
+
+    def _restore_draft_data(self, draft_data: dict):
+        """
+        Restore form state from draft data
+
+        Args:
+            draft_data: Dictionary containing saved form state
+        """
+        # Note: This is a simplified restore - full implementation would need to
+        # reconstruct file objects which is complex in Streamlit.
+        # For now, we just show a message with what was saved.
+
+        st.info(
+            f"""
+            **Draft contains:**
+            - Product Type: {draft_data.get('product_type', 'N/A')}
+            - PDF: {draft_data.get('pdf_file_name', 'None')} ({len(draft_data.get('pdf_pages', []))} pages)
+            - Excel: {draft_data.get('excel_file_name', 'None')} ({len(draft_data.get('excel_rows', []))} rows)
+            - Website: {draft_data.get('website_url', 'None')}
+
+            Please re-upload files to continue with this configuration.
+            """
+        )
+
+    # ========== NEW FEATURE: Batch Mode ==========
+
+    def _create_batch_configurations(self, product_type: str, base_product: str):
+        """
+        Create multiple ProductConfig objects, one per row in Excel (Batch Mode)
+
+        Args:
+            product_type: Product type (cosmetics/fragrance/subtype)
+            base_product: Base product name (for subtype only)
+        """
+
+        if not st.session_state.current_excel_file or st.session_state.processed_excel_df is None:
+            st.error("❌ No Excel file processed.")
+            return
+
+        processed_df = st.session_state.processed_excel_df
+
+        # Filter out empty rows (all NaN)
+        non_empty_df = processed_df.dropna(how='all')
+        total_rows = len(processed_df)
+        valid_rows = len(non_empty_df)
+        empty_rows_skipped = total_rows - valid_rows
+
+        # Get model configuration (hidden from user)
+        model_provider = config.DEFAULT_PROVIDER
+        if model_provider == "groq":
+            model_name = config.DEFAULT_GROQ_MODEL
+        else:
+            model_name = config.DEFAULT_OPENAI_MODEL
+        temperature = config.DEFAULT_TEMPERATURE
+
+        # Clean base product for subtype
+        clean_base_product = ""
+        if base_product:
+            clean_base_product = base_product.strip().lower().replace(" ", "").replace("-", "")
+
+        # Get header row used
+        excel_header_row = st.session_state.get("excel_header_row", 0)
+
+        # Create configurations with progress indicator
+        with st.spinner(f"Creating {valid_rows} product configurations..."):
+            configs_created = 0
+
+            # Use original indices from processed_df for row numbers
+            for original_idx in non_empty_df.index:
+                try:
+                    # Create config for single row
+                    new_config = ProductConfig(
+                        product_type=product_type,
+                        base_product=clean_base_product,
+                        pdf_file=None,
+                        pdf_pages=[],
+                        excel_file=st.session_state.current_excel_file,
+                        excel_rows=[original_idx],  # Single row
+                        excel_header_row=excel_header_row,
+                        website_url=None,
+                        model_provider=model_provider,
+                        model_name=model_name,
+                        temperature=temperature,
+                        custom_instructions="",
+                    )
+
+                    # Add to configurations
+                    add_product_config(new_config)
+                    configs_created += 1
+
+                except Exception as e:
+                    st.warning(f"⚠️ Failed to create config for row {original_idx}: {str(e)}")
+                    continue
+
+        # Success message
+        if empty_rows_skipped > 0:
+            success_msg = f"✅ Created {configs_created} product configurations in batch mode! ({empty_rows_skipped} empty rows skipped)"
+        else:
+            success_msg = f"✅ Created {configs_created} product configurations in batch mode!"
+
+        # Add details
+        success_msg += f"\n\n**Source:** {st.session_state.current_excel_file.name}"
+        success_msg += f"\n**Product Type:** {product_type}"
+        if product_type == "subtype" and clean_base_product:
+            success_msg += f"\n**Base Product:** {clean_base_product}"
+
+        st.success(success_msg)
+
+        # Clear form data
+        self._clear_form_data()
+
+        # Rerun to refresh the UI
+        st.rerun()
