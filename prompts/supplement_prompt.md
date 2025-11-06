@@ -63,7 +63,7 @@ Root Level Fields (Marketing Content):
     - Ensure proper HTML structure and valid syntax
 
     DescriptionPT: SEO-optimized marketing DescriptionEN COMPLETELY TRANSLATED to European Portuguese of Portugal (PT-PT) in HTML format (same HTML structure as DescriptionEN).
-    howToType: (you need to convert the string into the correct integer codification) like: "usage advice" as "0", "olfactory atmosphere" as "1", "dosage" as "2", "details" as "3", "size grid" as "4"
+    howToType: (you need to convert the string into the correct integer codification) like: "usage advice" as "0", "dosage" as "2", "details" as "3", "size grid" as "4"
     HowToEN: Detailed usage instructions
     HowToPT: Detailed usage instructions in european portuguese of Portugal
 
@@ -73,9 +73,9 @@ Subtypes Array (Technical Data):
     ItemDescriptionEN: Short product name in English WITHOUT size/quantity/brand  (e.g., "Hyalu-Filler Lips" NOT "Hyalu-Filler Lips 15ml");
     ItemDescriptionPT: Short product name COMPLETELY TRANSLATED to Portuguese with function WITHOUT size/quantity/brand- translate ALL words (e.g., "Lábios Hidratante" NOT "CeraVe Lips Hidratante");
     ItemCapacity: Size value (numeric without quotes, e.g., 50);
-    ItemCapacityUnits: Size unit code (you need to convert the string into the correct integer codification like: "unit" as "1", "ml" as "2", "gr" as "4", "kilogram" as "5", "capsules" as "6", "pills" as "8", "gummies" as "11", "pares" as "14"). If it is not available complete with "2", never keep null or empty;
+    ItemCapacityUnits: Size unit code (you need to convert the string into the correct integer codification like: "unit" as "1", "ml" as "2", "gr" as "4", "kilogram" as "5", "pares" as "14"). If it is not available complete with "2", never keep null or empty;
     PackType: One of (you need to convert the string into the correct integer codification): "normal" as "0", "coffret" as "1", "promo pack" as "3", "limited edition" as "6", "recharge" as "14", "offer with the main product" as "13";
-    VariantType: Type of variant (e.g., "color", "size", "scent");
+    VariantType: Type of variant (e.g., "color", "size");
     VariantValue: Value of the variant (e.g., "red", "large", "vanilla");
     HexColor: Hex color code if product has color variants;
     SecondVariantType: Second variant type if applicable;
