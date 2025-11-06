@@ -437,8 +437,9 @@ def process_with_llm(text, product_type, llm, run_name=None):
         return None
 
     try:
-        # Use simple string replacement for cosmetics to avoid JSON braces conflict
-        if product_type == "cosmetics":
+        # Use simple string replacement for product types with JSON examples in prompts
+        # to avoid LangChain PromptTemplate issues with JSON braces
+        if product_type in ["cosmetics", "supplement", "tech"]:
             # Replace {text} manually to avoid LangChain PromptTemplate issues with JSON braces
             formatted_prompt = prompt_content.replace("{text}", text)
             st.info("Sending data to LLM for processing...")
