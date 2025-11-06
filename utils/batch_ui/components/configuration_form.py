@@ -460,6 +460,75 @@ class ConfigurationForm:
                             # Store valid rows count for later use
                             st.session_state[f"batch_valid_rows_{st.session_state.form_counter}"] = valid_rows
 
+                            # NEW FEATURE: URL Column Selection for Batch Mode (Always Visible)
+                            st.markdown("---")
+
+                            processed_df = st.session_state.processed_excel_df
+                            column_options = list(processed_df.columns)
+
+                            # Try to auto-detect URL column (columns with keywords)
+                            url_keywords = ["url", "link", "website", "web", "site", "href"]
+                            url_column_candidates = [
+                                col for col in column_options
+                                if any(keyword in str(col).lower() for keyword in url_keywords)
+                            ]
+
+                            # Add "None" option at the beginning
+                            dropdown_options = ["None (Excel only)"] + column_options
+
+                            # Set default index
+                            default_index = 0  # Default to "None"
+                            if url_column_candidates:
+                                # Auto-select first detected URL column
+                                default_index = dropdown_options.index(url_column_candidates[0])
+                                st.info(f"💡 Auto-detected URL column: **{url_column_candidates[0]}** (change to 'None' if not needed)")
+
+                            url_column_selection = st.selectbox(
+                                "Website URLs:",
+                                options=dropdown_options,
+                                index=default_index,
+                                help="Choose a column with URLs to scrape website content for each product, or select 'None' to use Excel data only",
+                                key=f"url_column_select_{st.session_state.form_counter}"
+                            )
+
+                            # Only process if not "None"
+                            if url_column_selection != "None (Excel only)":
+                                url_column = url_column_selection
+
+                                # Show preview of URLs from first 5 rows
+                                preview_urls = processed_df[url_column].head(5)
+                                urls_valid = 0
+                                urls_empty = 0
+
+                                for idx, url in enumerate(preview_urls):
+                                    if pd.notna(url) and str(url).strip():
+                                        url_str = str(url).strip()
+                                        if url_str.startswith(('http://', 'https://')):
+                                            st.caption(f"✅ Row {idx}: {url_str}")
+                                            urls_valid += 1
+                                        else:
+                                            st.caption(f"⚠️ Row {idx}: {url_str} (missing http/https)")
+                                            urls_valid += 1
+                                    else:
+                                        st.caption(f"❌ Row {idx}: Empty or invalid")
+                                        urls_empty += 1
+
+                                # Count total URLs in entire dataset
+                                all_urls = processed_df[url_column].dropna()
+                                total_urls_found = len([url for url in all_urls if str(url).strip()])
+                                total_urls_missing = valid_rows - total_urls_found
+
+                                if total_urls_missing > 0:
+                                    st.warning(f"⚠️ {total_urls_missing} out of {valid_rows} rows have missing URLs. These will use Excel data only.")
+
+                                # Store URL column for later use
+                                st.session_state[f"batch_url_column_{st.session_state.form_counter}"] = url_column
+                            else:
+                                # Clear the URL column selection if "None" is selected
+                                url_column_key = f"batch_url_column_{st.session_state.form_counter}"
+                                if url_column_key in st.session_state:
+                                    del st.session_state[url_column_key]
+
                             # Skip row selection in batch mode
                             selected_excel_rows = []
                         else:
@@ -662,13 +731,19 @@ class ConfigurationForm:
                 st.error("❌ No valid rows to process. Please check your Excel file.")
                 return
 
-            # Validate: no other sources
+            # Validate: no PDF sources (websites are allowed via URL column)
             has_pdf = st.session_state.current_pdf_file and selected_pdf_pages
-            has_website = website_url and website_url.strip()
 
-            if has_pdf or has_website:
-                st.error("❌ Batch mode works with Excel only. Please remove PDF/Website sources or disable batch mode.")
+            if has_pdf:
+                st.error("❌ Batch mode does not support PDF sources. Please remove PDF or disable batch mode.")
                 return
+
+            # Note: Website sources are now supported via URL column selection
+            # Manual website_url input is still not compatible with batch mode
+            has_manual_website = website_url and website_url.strip()
+            if has_manual_website:
+                st.warning("⚠️ Manual website URL will be ignored in batch mode. Use the URL column feature instead.")
+                website_url = ""  # Clear it to avoid confusion
 
             # Validate base_product for subtype
             if product_type == "subtype" and not base_product.strip():
@@ -975,16 +1050,24 @@ class ConfigurationForm:
             valid_rows_key = f"batch_valid_rows_{st.session_state.form_counter}"
             valid_rows = st.session_state.get(valid_rows_key, 0)
 
-            st.info(f"""
+            # Check if URL column is enabled
+            url_column_key = f"batch_url_column_{st.session_state.form_counter}"
+            url_column = st.session_state.get(url_column_key, None)
+
+            info_text = f"""
 📦 **Batch Mode Active**
 - Each row will create 1 separate product configuration
 - Total configurations to create: **{valid_rows}**
 - Empty rows will be automatically skipped
-            """)
+"""
+            if url_column:
+                info_text += f"- Website URLs will be scraped from column: **{url_column}**\n"
 
-            # Show warning if mixing sources
-            if has_pdf or has_website:
-                st.error("❌ **Batch mode works with Excel only.** Please remove PDF/Website sources or disable batch mode.")
+            st.info(info_text)
+
+            # Show warning if mixing with PDF (websites via column are now allowed)
+            if has_pdf:
+                st.error("❌ **Batch mode does not support PDF sources.** Please remove PDF or disable batch mode.")
 
         # Tabbed preview (only if multiple sources)
         tab_labels = []
@@ -1095,13 +1178,33 @@ class ConfigurationForm:
         # Get header row used
         excel_header_row = st.session_state.get("excel_header_row", 0)
 
+        # Check if URL column is enabled for batch mode
+        url_column_key = f"batch_url_column_{st.session_state.form_counter}"
+        url_column = st.session_state.get(url_column_key, None)
+
         # Create configurations with progress indicator
         with st.spinner(f"Creating {valid_rows} product configurations..."):
             configs_created = 0
+            urls_found = 0
+            urls_missing = 0
+            urls_invalid = 0
 
             # Use original indices from processed_df for row numbers
             for original_idx in non_empty_df.index:
                 try:
+                    # Extract website URL from the row if column is specified
+                    website_url = None
+                    if url_column and url_column in processed_df.columns:
+                        url_value = processed_df.loc[original_idx, url_column]
+                        if pd.notna(url_value) and str(url_value).strip():
+                            website_url = str(url_value).strip()
+                            # Add http:// if missing
+                            if not website_url.startswith(('http://', 'https://')):
+                                website_url = 'https://' + website_url
+                            urls_found += 1
+                        else:
+                            urls_missing += 1
+
                     # Create config for single row
                     new_config = ProductConfig(
                         product_type=product_type,
@@ -1111,7 +1214,7 @@ class ConfigurationForm:
                         excel_file=st.session_state.current_excel_file,
                         excel_rows=[original_idx],  # Single row
                         excel_header_row=excel_header_row,
-                        website_url=None,
+                        website_url=website_url,  # Now includes URL from column!
                         model_provider=model_provider,
                         model_name=model_name,
                         temperature=temperature,
@@ -1137,6 +1240,14 @@ class ConfigurationForm:
         success_msg += f"\n**Product Type:** {product_type}"
         if product_type == "subtype" and clean_base_product:
             success_msg += f"\n**Base Product:** {clean_base_product}"
+
+        # Add URL statistics if URL column was used
+        if url_column:
+            success_msg += f"\n\n**🔗 Website URLs:**"
+            success_msg += f"\n  • Column: {url_column}"
+            success_msg += f"\n  • Found: {urls_found}"
+            if urls_missing > 0:
+                success_msg += f"\n  • Missing: {urls_missing} (will use Excel data only)"
 
         st.success(success_msg)
 
