@@ -12,7 +12,6 @@ Root Level Fields (Marketing Content):
     UrlEN: SEO URL slug from product_title_EN WITHOUT size/quantity WITH brand (e.g., "solgar-omega-3-fish-oil-capsules");
     UrlPT: SEO URL slug from TRANSLATED product_title_PT WITHOUT size/quantity WITH brand (e.g., "solgar-capsulas-oleo-peixe-omega-3");
     brand: Product brand name;
-    brand_category: Product line or category within brand (e.g., "Omega-3");
     ModelName: always show "deo";
     CategoryId:;
     DescriptionEN: SEO-optimized marketing description in HTML format (MANDATORY STRUCTURE - follow exactly):
@@ -73,7 +72,7 @@ Subtypes Array (Technical Data):
     ItemDescriptionEN: Short product name in English WITHOUT size/quantity/brand (e.g., "Omega-3 Capsules" NOT "Solgar Omega-3 Capsules 60ct");
     ItemDescriptionPT: Short product name COMPLETELY TRANSLATED to Portuguese with function WITHOUT size/quantity/brand - translate ALL words (e.g., "Cápsulas Ómega-3" NOT "Solgar Omega-3 Cápsulas");
     ItemCapacity: Size value (numeric without quotes, e.g., 60);
-    ItemCapacityUnits: Size unit code (you need to convert the string into the correct integer codification like: "unit" as "1", "ml" as "2", "capsules" as "6", "tablets" as "8", "grams" as "9". If it is not available complete with "1", never keep null or empty);
+    ItemCapacityUnits: Size unit code (you need to convert the string into the correct integer codification like: "unit" as "1", "ml" as "2", "grams" as "4", capsules" as "6", "tablets" as "8", "gummies" as "11". If it is not available complete with "1", never keep null or empty);
     PackType: One of (you need to convert the string into the correct integer codification): "normal" as "0", "promo pack" as "3";
     VariantType: Type of variant (e.g., "dosage", "flavor", "format");
     VariantValue: Value of the variant (e.g., "1000mg", "berry", "softgel");

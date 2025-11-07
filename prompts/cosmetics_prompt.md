@@ -12,7 +12,6 @@ Root Level Fields (Marketing Content):
     UrlEN: SEO URL slug from product_title_EN WITHOUT size/quantity WITH brand (e.g., "filorga-hyalu-filler-lips-volumizing-lip-balm");
     UrlPT: SEO URL slug from TRANSLATED product_title_PT WITHOUT size/quantity  WITH brand (e.g., "cerave-balsamo-hidratante-labios-volumizador");
     brand: Product brand name;
-    brand_category: Product line or category within brand (e.g., "Hyalu-Filler");
     ModelName: always show "deo";
     CategoryId:;
     DescriptionEN: SEO-optimized marketing description in HTML format (MANDATORY STRUCTURE - follow exactly):
@@ -73,7 +72,7 @@ Subtypes Array (Technical Data):
     ItemDescriptionEN: Short product name in English WITHOUT size/quantity/brand  (e.g., "Hyalu-Filler Lips" NOT "Hyalu-Filler Lips 15ml");
     ItemDescriptionPT: Short product name COMPLETELY TRANSLATED to Portuguese with function WITHOUT size/quantity/brand- translate ALL words (e.g., "Lábios Hidratante" NOT "CeraVe Lips Hidratante");
     ItemCapacity: Size value (numeric without quotes, e.g., 50);
-    ItemCapacityUnits: Size unit code (you need to convert the string into the correct integer codification like: "unit" as "1", "ml" as "2", "gr" as "4", "kilogram" as "5", "pares" as "14"). If it is not available complete with "2", never keep null or empty;
+    ItemCapacityUnits: Size unit code (you need to convert the string into the correct integer codification like: "unit" as "1", "ml" as "2", "gr" as "4", "kilogram" as "5", Gummies as "11", "pares" as "14"). If it is not available complete with "2", never keep null or empty;
     PackType: One of (you need to convert the string into the correct integer codification): "normal" as "0", "coffret" as "1", "promo pack" as "3", "limited edition" as "6", "recharge" as "14", "offer with the main product" as "13";
     VariantType: Type of variant (e.g., "color", "size");
     VariantValue: Value of the variant (e.g., "red", "large", "vanilla");

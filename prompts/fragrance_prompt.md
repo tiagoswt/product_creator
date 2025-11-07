@@ -10,7 +10,6 @@ TitlePT: Full product name COMPLETELY TRANSLATED to European Portuguese WITHOUT 
 UrlEN: SEO URL slug from TitleEN WITHOUT size/quantity WITH brand (e.g., "lancome-la-vie-est-belle-eau-de-parfum");
 UrlPT: SEO URL slug from TRANSLATED TitlePT WITHOUT size/quantity WITH brand (e.g., "lancome-eau-de-parfum-vida-bela");
 brand: Product brand name;
-brand_category: Product line or collection within brand (e.g., "La Vie Est Belle", "Acqua di Giò");
 ModelName: always show "deo";
 CategoryId: Product category identifier;
 DescriptionEN: SEO-optimized marketing description in HTML format (MANDATORY STRUCTURE - follow exactly):
