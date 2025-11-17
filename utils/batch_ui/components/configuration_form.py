@@ -677,30 +677,103 @@ class ConfigurationForm:
             return f"Error reading row: {str(e)}"
 
     def _render_website_section(self):
-        """Render website URL input section"""
+        """Render website URL input section with optional batch mode"""
         st.write("**🌐 Website Source**")
-        website_url = st.text_input(
-            "Website URLs",
-            placeholder="https://example.com/product-page, https://shop.example.com/item, another-site.com/product",
-            help="Enter one or more website URLs containing product information. Separate multiple URLs with commas.",
-            key=f"website_url_input_{st.session_state.form_counter}",
+
+        # Add batch mode toggle
+        website_batch_mode = st.checkbox(
+            "Batch Mode: Each URL = 1 product",
+            value=False,
+            help="Create one product configuration per URL (separate extractions). Paste one URL per line.",
+            key=f"website_batch_mode_{st.session_state.form_counter}"
         )
 
-        # Show URL preview if user has entered something
-        if website_url and website_url.strip():
-            try:
-                from processors.web_processor import get_url_preview
+        website_url = None
 
-                preview = get_url_preview(website_url)
-                st.caption(preview)
-            except (ImportError, Exception):
-                # Fallback if the new functions aren't available yet
-                url_count = len(
-                    [url.strip() for url in website_url.split(",") if url.strip()]
-                )
-                st.caption(f"📋 {url_count} URL(s) to process")
+        if website_batch_mode:
+            # Batch mode: Text area with one URL per line
+            website_urls_text = st.text_area(
+                "Website URLs (one per line)",
+                placeholder="https://example.com/product1\nhttps://example.com/product2\nhttps://example.com/product3",
+                height=150,
+                help="Enter one website URL per line. Each URL will be processed as a separate product.",
+                key=f"website_urls_batch_{st.session_state.form_counter}"
+            )
 
-        return website_url
+            # Parse and validate URLs
+            if website_urls_text and website_urls_text.strip():
+                from processors.web_processor import validate_urls
+
+                # Split by newlines and filter empty lines
+                raw_urls = [line.strip() for line in website_urls_text.split('\n') if line.strip()]
+
+                # Validate URLs
+                valid_urls, invalid_urls = [], []
+                for url in raw_urls:
+                    try:
+                        is_valid, cleaned_urls, error_msg = validate_urls(url)
+                        if is_valid and cleaned_urls:
+                            valid_urls.extend(cleaned_urls)  # Extend with URL list only
+                        else:
+                            invalid_urls.append(url)
+                    except Exception:
+                        invalid_urls.append(url)
+
+                # Store valid URLs count in session state
+                st.session_state[f"batch_website_count_{st.session_state.form_counter}"] = len(valid_urls)
+                st.session_state[f"batch_website_urls_{st.session_state.form_counter}"] = valid_urls
+
+                # Show preview
+                if valid_urls:
+                    from config import MAX_WEBSITE_BATCH_SIZE
+
+                    if len(valid_urls) > MAX_WEBSITE_BATCH_SIZE:
+                        st.error(f"❌ Maximum {MAX_WEBSITE_BATCH_SIZE} URLs per batch. You have {len(valid_urls)} URLs. Please reduce the number.")
+                    else:
+                        st.info(f"✨ **Batch Mode Active:** Creating {len(valid_urls)} product configurations")
+
+                        # Show preview of first 3 URLs
+                        st.write("**Preview (first 3 URLs):**")
+                        for i, url in enumerate(valid_urls[:3], 1):
+                            st.caption(f"{i}. {url}")
+
+                        if len(valid_urls) > 3:
+                            st.caption(f"... and {len(valid_urls) - 3} more URLs")
+
+                # Show invalid URLs warning
+                if invalid_urls:
+                    st.warning(f"⚠️ {len(invalid_urls)} invalid URLs will be skipped")
+                    with st.expander("Show invalid URLs"):
+                        for url in invalid_urls:
+                            st.caption(f"❌ {url}")
+
+            # Return None for batch mode (handled separately in submission)
+            return None
+
+        else:
+            # Normal mode: Comma-separated URLs (existing behavior)
+            website_url = st.text_input(
+                "Website URLs",
+                placeholder="https://example.com/product-page, https://shop.example.com/item, another-site.com/product",
+                help="Enter one or more website URLs containing product information. Separate multiple URLs with commas.",
+                key=f"website_url_input_{st.session_state.form_counter}",
+            )
+
+            # Show URL preview if user has entered something
+            if website_url and website_url.strip():
+                try:
+                    from processors.web_processor import get_url_preview
+
+                    preview = get_url_preview(website_url)
+                    st.caption(preview)
+                except (ImportError, Exception):
+                    # Fallback if the new functions aren't available yet
+                    url_count = len(
+                        [url.strip() for url in website_url.split(",") if url.strip()]
+                    )
+                    st.caption(f"📋 {url_count} URL(s) to process")
+
+            return website_url
 
     def _handle_form_submission(
         self,
@@ -715,6 +788,44 @@ class ConfigurationForm:
         # Check if batch mode is active
         batch_mode_key = f"excel_batch_mode_{st.session_state.form_counter}"
         is_batch_mode = st.session_state.get(batch_mode_key, False)
+
+        # Check if website batch mode is active
+        website_batch_mode_key = f"website_batch_mode_{st.session_state.form_counter}"
+        is_website_batch_mode = st.session_state.get(website_batch_mode_key, False)
+
+        if is_website_batch_mode:
+            # ========== WEBSITE BATCH MODE HANDLING ==========
+
+            # Get valid URLs count
+            valid_urls_count = st.session_state.get(f"batch_website_count_{st.session_state.form_counter}", 0)
+
+            if valid_urls_count == 0:
+                st.error("❌ No valid URLs to process. Please enter at least one valid URL.")
+                return
+
+            # Validate: no PDF or Excel sources in website batch mode
+            has_pdf = st.session_state.current_pdf_file and selected_pdf_pages
+            has_excel = st.session_state.current_excel_file and selected_excel_rows
+
+            if has_pdf:
+                st.error("❌ Website batch mode does not support PDF sources. Please remove PDF or disable batch mode.")
+                return
+
+            if has_excel:
+                st.error("❌ Website batch mode does not support Excel sources. Please remove Excel or disable batch mode.")
+                return
+
+            # Validate base_product for subtype
+            if product_type == "subtype" and not base_product.strip():
+                st.error("❌ Please enter a base product for subtype classification.")
+                return
+
+            # Execute website batch mode
+            self._create_website_batch_configurations(
+                product_type=product_type,
+                base_product=base_product
+            )
+            return  # Early return after batch processing
 
         if is_batch_mode:
             # ========== BATCH MODE HANDLING ==========
@@ -1250,6 +1361,97 @@ class ConfigurationForm:
                 success_msg += f"\n  • Missing: {urls_missing} (will use Excel data only)"
 
         st.success(success_msg)
+
+        # Clear form data
+        self._clear_form_data()
+
+        # Rerun to refresh the UI
+        st.rerun()
+
+    def _create_website_batch_configurations(self, product_type: str, base_product: str):
+        """
+        Create multiple ProductConfig objects, one per URL (Website Batch Mode)
+
+        Args:
+            product_type: Product type (cosmetics/fragrance/subtype/supplement/tech)
+            base_product: Base product name (for subtype only)
+        """
+        from config import MAX_WEBSITE_BATCH_SIZE
+
+        # Get valid URLs from session state
+        valid_urls = st.session_state.get(f"batch_website_urls_{st.session_state.form_counter}", [])
+
+        if not valid_urls:
+            st.error("❌ No valid URLs found.")
+            return
+
+        # Check maximum limit
+        if len(valid_urls) > MAX_WEBSITE_BATCH_SIZE:
+            st.error(f"❌ Maximum {MAX_WEBSITE_BATCH_SIZE} URLs per batch. You have {len(valid_urls)} URLs.")
+            return
+
+        # Get model configuration (hidden from user)
+        model_provider = config.DEFAULT_PROVIDER
+        if model_provider == "groq":
+            model_name = config.DEFAULT_GROQ_MODEL
+        else:
+            model_name = config.DEFAULT_OPENAI_MODEL
+        temperature = config.DEFAULT_TEMPERATURE
+
+        # Clean base product for subtype
+        clean_base_product = ""
+        if base_product:
+            clean_base_product = base_product.strip().lower().replace(" ", "").replace("-", "")
+
+        # Create configurations with progress indicator
+        with st.spinner(f"Creating {len(valid_urls)} product configurations..."):
+            configs_created = 0
+
+            for url in valid_urls:
+                try:
+                    # Create ProductConfig for this URL
+                    new_config = ProductConfig(
+                        product_type=product_type,
+                        base_product=clean_base_product,
+                        pdf_file=None,
+                        pdf_pages=[],
+                        excel_file=None,
+                        excel_rows=[],
+                        excel_header_row=0,
+                        website_url=url,  # Single URL per config
+                        model_provider=model_provider,
+                        model_name=model_name,
+                        temperature=temperature,
+                        custom_instructions="",
+                    )
+
+                    # Add to product configurations
+                    add_product_config(new_config)
+                    configs_created += 1
+
+                except Exception as e:
+                    st.error(f"Error creating configuration for URL {url}: {e}")
+                    continue
+
+        # Show success message
+        if configs_created > 0:
+            st.success(
+                f"✅ Successfully created {configs_created} product configuration(s) from website URLs!"
+            )
+
+            # Show summary
+            st.info(
+                f"""
+                **Batch Processing Summary:**
+                - Total URLs: {len(valid_urls)}
+                - Configurations created: {configs_created}
+                - Product type: {product_type}
+                - Model: {model_name}
+                - Temperature: {temperature}
+
+                **Next Step:** Go to the "Execute Batch" tab to process these configurations.
+                """
+            )
 
         # Clear form data
         self._clear_form_data()

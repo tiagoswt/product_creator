@@ -104,6 +104,10 @@ DROPBOX_ADD_TIMESTAMP = True  # Add timestamp to avoid conflicts
 # PDF preview settings - Updated for higher resolution
 PDF_PREVIEW_SCALE = 0.7  # Increased from 0.5 for better quality and bigger images
 
+# Website batch mode settings
+MAX_WEBSITE_BATCH_SIZE = 100  # Maximum URLs per batch (slower than Excel due to scraping)
+WEBSITE_SCRAPE_DELAY_SECONDS = 2.0  # Delay between consecutive website scrapes for rate limiting
+
 # ============================================
 # PHASE 3: OpenEvals Integration Configuration
 # ============================================

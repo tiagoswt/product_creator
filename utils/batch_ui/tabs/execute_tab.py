@@ -44,14 +44,22 @@ def render_execute_tab():
                 if config.excel_file and config.excel_rows:
                     sources.append(f"Excel({len(config.excel_rows)})")
                 if config.website_url:
-                    url_count = len(
-                        [
-                            url.strip()
-                            for url in config.website_url.split(",")
-                            if url.strip()
-                        ]
-                    )
-                    sources.append(f"Web({url_count})")
+                    # Handle different types of website_url (string, list, bool, etc.)
+                    if isinstance(config.website_url, str):
+                        # Normal mode: comma-separated string or single URL
+                        url_count = len([url.strip() for url in config.website_url.split(",") if url.strip()])
+                    elif isinstance(config.website_url, list):
+                        # List format (shouldn't happen but handle it)
+                        url_count = len(config.website_url)
+                    elif isinstance(config.website_url, bool):
+                        # Boolean (shouldn't happen but handle it)
+                        url_count = 1 if config.website_url else 0
+                    else:
+                        # Unknown type, default to 1
+                        url_count = 1
+
+                    if url_count > 0:
+                        sources.append(f"Web({url_count})")
 
                 source_text = "+".join(sources) if sources else "No sources"
                 st.caption(f"{i+1}. {config.product_type.title()} - {source_text}")

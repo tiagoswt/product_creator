@@ -83,6 +83,9 @@ class BatchProcessor:
             total_configs = len(configs)
             status_text.info(f"🚀 Processing {total_configs} products...")
 
+        # Track previous config for rate limiting
+        previous_config_was_website = False
+
         # Process each configuration
         for i, config in enumerate(configs):
             current_num = i + 1
@@ -93,6 +96,12 @@ class BatchProcessor:
                 continue
 
             try:
+                # Rate limiting: Add delay between consecutive website scrapes
+                if config.website_url and previous_config_was_website:
+                    from config import WEBSITE_SCRAPE_DELAY_SECONDS
+                    status_text.info(f"⏳ Rate limiting delay ({WEBSITE_SCRAPE_DELAY_SECONDS}s) before scraping website ({current_num}/{total_configs})")
+                    time.sleep(WEBSITE_SCRAPE_DELAY_SECONDS)
+
                 start_time = time.time()
 
                 # Update configuration status
@@ -104,6 +113,9 @@ class BatchProcessor:
                 progress_bar.progress((current_num - 0.7) / total_configs)
 
                 consolidated_text = self._create_consolidated_text(config)
+
+                # Track if this config was a website for next iteration
+                previous_config_was_website = bool(config.website_url)
 
                 if consolidated_text:
                     # Phase 2: AI Processing
