@@ -34,13 +34,11 @@ class ConfigurationForm:
         if "last_pdf_processed" not in st.session_state:
             st.session_state.last_pdf_processed = None
 
-        # Excel states (updated with new preview states)
+        # Excel states
         if "current_excel_file" not in st.session_state:
             st.session_state.current_excel_file = None
         if "excel_rows_selected" not in st.session_state:
             st.session_state.excel_rows_selected = []
-        if "raw_excel_df" not in st.session_state:
-            st.session_state.raw_excel_df = None
         if "processed_excel_df" not in st.session_state:
             st.session_state.processed_excel_df = None
         if "excel_header_row" not in st.session_state:
@@ -304,24 +302,23 @@ class ConfigurationForm:
             if is_new_file:
                 # Reset states for new file
                 st.session_state.current_excel_file = excel_file
-                if "raw_excel_df" in st.session_state:
-                    del st.session_state["raw_excel_df"]
                 if "processed_excel_df" in st.session_state:
                     del st.session_state["processed_excel_df"]
                 if "excel_header_row" in st.session_state:
                     del st.session_state["excel_header_row"]
 
-                # Auto-load raw preview for new file
-                with st.spinner("📊 Loading file preview..."):
+                # Auto-load file with first row as header
+                with st.spinner("📊 Loading file..."):
                     try:
-                        # Load raw data without headers for preview
+                        # Load data with first row (row 0) as header
                         excel_file.seek(0)
-                        raw_df = process_excel_file(
-                            excel_file, header=None, nrows=20
-                        )  # Load first 20 rows
-                        if raw_df is not None:
-                            st.session_state.raw_excel_df = raw_df
-                            st.success(f"✅ File loaded: {excel_file.name}")
+                        processed_df = process_excel_file(
+                            excel_file, header=0
+                        )  # Use first row as header
+                        if processed_df is not None and not processed_df.empty:
+                            st.session_state.processed_excel_df = processed_df
+                            st.session_state.excel_header_row = 0  # Automatically set to row 0
+                            st.success(f"✅ File loaded: {excel_file.name} ({len(processed_df)} rows)")
                         else:
                             st.error(
                                 "❌ Error loading file. Please check the file format."
@@ -334,213 +331,143 @@ class ConfigurationForm:
                 st.session_state.current_excel_file = excel_file
                 st.info(f"📊 File: {excel_file.name}")
 
-            # Show raw preview if available
+            # Show processed data with headers if available
             if (
-                "raw_excel_df" in st.session_state
-                and st.session_state.raw_excel_df is not None
+                "processed_excel_df" in st.session_state
+                and st.session_state.processed_excel_df is not None
+                and not st.session_state.processed_excel_df.empty
+                and st.session_state.current_excel_file
             ):
-                # Show raw data preview
-                st.write("**📋 File Preview (first 20 rows):**")
+                st.markdown("---")
+                st.write("**📋 Processed Data with Headers:**")
 
-                # Display the raw data with row numbers
-                preview_df = st.session_state.raw_excel_df.copy()
-                preview_df.index.name = "Row"
+                try:
+                    # Show processed data preview with additional safety checks
+                    processed_preview = st.session_state.processed_excel_df.head(10)
+                    st.dataframe(processed_preview, use_container_width=True)
 
-                # Show the dataframe with row indices
-                st.dataframe(preview_df, use_container_width=True, height=300)
-
-                # IMPROVEMENT #2: Smart Header Row Detection
-                total_rows = len(preview_df)
-                st.write("**🏷️ Header Row Selection:**")
-
-                # Detect header row automatically
-                detected_header_row = self._detect_header_row_smart(preview_df)
-
-                # Show AI suggestion
-                col1, col2 = st.columns([3, 1])
-                with col1:
-                    st.info(f"✨ **AI detected header at row {detected_header_row}**")
-                    header_preview = preview_df.iloc[
-                        detected_header_row : detected_header_row + 1
-                    ]
-                    st.dataframe(
-                        header_preview, use_container_width=True, hide_index=False
-                    )
-                with col2:
-                    if st.button(
-                        "✅ Accept",
-                        key=f"accept_header_{st.session_state.form_counter}",
-                        type="primary",
-                        help="Use AI-detected header row",
-                        use_container_width=True,
-                    ):
-                        self._apply_header_row(detected_header_row)
-
-                # Manual override option in expander
-                with st.expander("🎯 Manually Override Header Row", expanded=False):
-                    header_row_manual = st.selectbox(
-                        "Select a different header row:",
-                        options=list(range(total_rows)),
-                        index=detected_header_row,
-                        format_func=lambda x: f"Row {x} - {self._format_row_preview(preview_df.iloc[x])}",
-                        help="Manually select the row that contains your column headers",
-                        key=f"excel_header_row_manual_{st.session_state.form_counter}",
-                    )
-
-                    # Show manual selection preview
-                    if header_row_manual != detected_header_row:
-                        st.write(f"**Preview of row {header_row_manual}:**")
-                        manual_preview = preview_df.iloc[
-                            header_row_manual : header_row_manual + 1
-                        ]
-                        st.dataframe(
-                            manual_preview, use_container_width=True, hide_index=False
-                        )
-
-                    if st.button(
-                        "✅ Apply Manual Selection",
-                        key=f"apply_manual_header_{st.session_state.form_counter}",
-                        type="secondary",
-                    ):
-                        self._apply_header_row(header_row_manual)
-
-                # Show row selection if data is processed with headers
-                if (
-                    "processed_excel_df" in st.session_state
-                    and st.session_state.processed_excel_df is not None
-                    and not st.session_state.processed_excel_df.empty
-                    and st.session_state.current_excel_file
-                ):
+                    # NEW FEATURE: Batch Mode Toggle
                     st.markdown("---")
-                    st.write("**📋 Processed Data with Headers:**")
+                    st.write("**📦 Import Mode:**")
 
-                    try:
-                        # Show processed data preview with additional safety checks
-                        processed_preview = st.session_state.processed_excel_df.head(10)
-                        st.dataframe(processed_preview, use_container_width=True)
+                    batch_mode = st.checkbox(
+                        "Batch Mode: Each row = 1 product",
+                        value=False,
+                        help="Automatically create one product configuration per row (Excel only)",
+                        key=f"excel_batch_mode_{st.session_state.form_counter}"
+                    )
 
-                        # NEW FEATURE: Batch Mode Toggle
+                    if batch_mode:
+                        # Count non-empty rows
+                        processed_df = st.session_state.processed_excel_df
+                        non_empty_df = processed_df.dropna(how='all')
+                        total_rows = len(processed_df)
+                        valid_rows = len(non_empty_df)
+                        empty_rows = total_rows - valid_rows
+
+                        # Show batch mode info
+                        if empty_rows > 0:
+                            st.info(f"✨ **Batch Mode Active:** Creating {valid_rows} product configs ({empty_rows} empty rows will be skipped)")
+                        else:
+                            st.info(f"✨ **Batch Mode Active:** Creating {valid_rows} product configurations")
+
+                        # Warning for large files
+                        if valid_rows > 100:
+                            st.warning(f"⚠️ Creating {valid_rows} configurations may take several minutes to process.")
+
+                        if valid_rows > 500:
+                            st.error(f"❌ Maximum 500 products per batch. Your file has {valid_rows} valid rows. Please split the file.")
+
+                        # Show preview of first 3 rows
+                        st.write("**Preview (first 3 rows as examples):**")
+                        st.dataframe(non_empty_df.head(3), use_container_width=True)
+                        if valid_rows > 3:
+                            st.caption(f"... and {valid_rows - 3} more rows")
+
+                        # Store valid rows count for later use
+                        st.session_state[f"batch_valid_rows_{st.session_state.form_counter}"] = valid_rows
+
+                        # NEW FEATURE: URL Column Selection for Batch Mode (Always Visible)
                         st.markdown("---")
-                        st.write("**📦 Import Mode:**")
 
-                        batch_mode = st.checkbox(
-                            "Batch Mode: Each row = 1 product",
-                            value=False,
-                            help="Automatically create one product configuration per row (Excel only)",
-                            key=f"excel_batch_mode_{st.session_state.form_counter}"
+                        processed_df = st.session_state.processed_excel_df
+                        column_options = list(processed_df.columns)
+
+                        # Try to auto-detect URL column (columns with keywords)
+                        url_keywords = ["url", "link", "website", "web", "site", "href"]
+                        url_column_candidates = [
+                            col for col in column_options
+                            if any(keyword in str(col).lower() for keyword in url_keywords)
+                        ]
+
+                        # Add "None" option at the beginning
+                        dropdown_options = ["None (Excel only)"] + column_options
+
+                        # Set default index
+                        default_index = 0  # Default to "None"
+                        if url_column_candidates:
+                            # Auto-select first detected URL column
+                            default_index = dropdown_options.index(url_column_candidates[0])
+                            st.info(f"💡 Auto-detected URL column: **{url_column_candidates[0]}** (change to 'None' if not needed)")
+
+                        url_column_selection = st.selectbox(
+                            "Website URLs:",
+                            options=dropdown_options,
+                            index=default_index,
+                            help="Choose a column with URLs to scrape website content for each product, or select 'None' to use Excel data only",
+                            key=f"url_column_select_{st.session_state.form_counter}"
                         )
 
-                        if batch_mode:
-                            # Count non-empty rows
-                            processed_df = st.session_state.processed_excel_df
-                            non_empty_df = processed_df.dropna(how='all')
-                            total_rows = len(processed_df)
-                            valid_rows = len(non_empty_df)
-                            empty_rows = total_rows - valid_rows
+                        # Only process if not "None"
+                        if url_column_selection != "None (Excel only)":
+                            url_column = url_column_selection
 
-                            # Show batch mode info
-                            if empty_rows > 0:
-                                st.info(f"✨ **Batch Mode Active:** Creating {valid_rows} product configs ({empty_rows} empty rows will be skipped)")
-                            else:
-                                st.info(f"✨ **Batch Mode Active:** Creating {valid_rows} product configurations")
+                            # Show preview of URLs from first 5 rows
+                            preview_urls = processed_df[url_column].head(5)
+                            urls_valid = 0
+                            urls_empty = 0
 
-                            # Warning for large files
-                            if valid_rows > 100:
-                                st.warning(f"⚠️ Creating {valid_rows} configurations may take several minutes to process.")
-
-                            if valid_rows > 500:
-                                st.error(f"❌ Maximum 500 products per batch. Your file has {valid_rows} valid rows. Please split the file.")
-
-                            # Show preview of first 3 rows
-                            st.write("**Preview (first 3 rows as examples):**")
-                            st.dataframe(non_empty_df.head(3), use_container_width=True)
-                            if valid_rows > 3:
-                                st.caption(f"... and {valid_rows - 3} more rows")
-
-                            # Store valid rows count for later use
-                            st.session_state[f"batch_valid_rows_{st.session_state.form_counter}"] = valid_rows
-
-                            # NEW FEATURE: URL Column Selection for Batch Mode (Always Visible)
-                            st.markdown("---")
-
-                            processed_df = st.session_state.processed_excel_df
-                            column_options = list(processed_df.columns)
-
-                            # Try to auto-detect URL column (columns with keywords)
-                            url_keywords = ["url", "link", "website", "web", "site", "href"]
-                            url_column_candidates = [
-                                col for col in column_options
-                                if any(keyword in str(col).lower() for keyword in url_keywords)
-                            ]
-
-                            # Add "None" option at the beginning
-                            dropdown_options = ["None (Excel only)"] + column_options
-
-                            # Set default index
-                            default_index = 0  # Default to "None"
-                            if url_column_candidates:
-                                # Auto-select first detected URL column
-                                default_index = dropdown_options.index(url_column_candidates[0])
-                                st.info(f"💡 Auto-detected URL column: **{url_column_candidates[0]}** (change to 'None' if not needed)")
-
-                            url_column_selection = st.selectbox(
-                                "Website URLs:",
-                                options=dropdown_options,
-                                index=default_index,
-                                help="Choose a column with URLs to scrape website content for each product, or select 'None' to use Excel data only",
-                                key=f"url_column_select_{st.session_state.form_counter}"
-                            )
-
-                            # Only process if not "None"
-                            if url_column_selection != "None (Excel only)":
-                                url_column = url_column_selection
-
-                                # Show preview of URLs from first 5 rows
-                                preview_urls = processed_df[url_column].head(5)
-                                urls_valid = 0
-                                urls_empty = 0
-
-                                for idx, url in enumerate(preview_urls):
-                                    if pd.notna(url) and str(url).strip():
-                                        url_str = str(url).strip()
-                                        if url_str.startswith(('http://', 'https://')):
-                                            st.caption(f"✅ Row {idx}: {url_str}")
-                                            urls_valid += 1
-                                        else:
-                                            st.caption(f"⚠️ Row {idx}: {url_str} (missing http/https)")
-                                            urls_valid += 1
+                            for idx, url in enumerate(preview_urls):
+                                if pd.notna(url) and str(url).strip():
+                                    url_str = str(url).strip()
+                                    if url_str.startswith(('http://', 'https://')):
+                                        st.caption(f"✅ Row {idx}: {url_str}")
+                                        urls_valid += 1
                                     else:
-                                        st.caption(f"❌ Row {idx}: Empty or invalid")
-                                        urls_empty += 1
+                                        st.caption(f"⚠️ Row {idx}: {url_str} (missing http/https)")
+                                        urls_valid += 1
+                                else:
+                                    st.caption(f"❌ Row {idx}: Empty or invalid")
+                                    urls_empty += 1
 
-                                # Count total URLs in entire dataset
-                                all_urls = processed_df[url_column].dropna()
-                                total_urls_found = len([url for url in all_urls if str(url).strip()])
-                                total_urls_missing = valid_rows - total_urls_found
+                            # Count total URLs in entire dataset
+                            all_urls = processed_df[url_column].dropna()
+                            total_urls_found = len([url for url in all_urls if str(url).strip()])
+                            total_urls_missing = valid_rows - total_urls_found
 
-                                if total_urls_missing > 0:
-                                    st.warning(f"⚠️ {total_urls_missing} out of {valid_rows} rows have missing URLs. These will use Excel data only.")
+                            if total_urls_missing > 0:
+                                st.warning(f"⚠️ {total_urls_missing} out of {valid_rows} rows have missing URLs. These will use Excel data only.")
 
-                                # Store URL column for later use
-                                st.session_state[f"batch_url_column_{st.session_state.form_counter}"] = url_column
-                            else:
-                                # Clear the URL column selection if "None" is selected
-                                url_column_key = f"batch_url_column_{st.session_state.form_counter}"
-                                if url_column_key in st.session_state:
-                                    del st.session_state[url_column_key]
-
-                            # Skip row selection in batch mode
-                            selected_excel_rows = []
+                            # Store URL column for later use
+                            st.session_state[f"batch_url_column_{st.session_state.form_counter}"] = url_column
                         else:
-                            # Normal mode: show row selection
-                            selected_excel_rows = self._render_excel_row_selection()
+                            # Clear the URL column selection if "None" is selected
+                            url_column_key = f"batch_url_column_{st.session_state.form_counter}"
+                            if url_column_key in st.session_state:
+                                del st.session_state[url_column_key]
 
-                    except Exception as e:
-                        st.error(f"❌ Error displaying processed data: {str(e)}")
-                        # Clear the problematic processed data
-                        if "processed_excel_df" in st.session_state:
-                            del st.session_state["processed_excel_df"]
+                        # Skip row selection in batch mode
                         selected_excel_rows = []
+                    else:
+                        # Normal mode: show row selection
+                        selected_excel_rows = self._render_excel_row_selection()
+
+                except Exception as e:
+                    st.error(f"❌ Error displaying processed data: {str(e)}")
+                    # Clear the problematic processed data
+                    if "processed_excel_df" in st.session_state:
+                        del st.session_state["processed_excel_df"]
+                    selected_excel_rows = []
 
             else:
                 if st.session_state.current_excel_file:
@@ -550,8 +477,6 @@ class ConfigurationForm:
             # No Excel uploaded - clear all related session state
             if st.session_state.current_excel_file:
                 st.session_state.current_excel_file = None
-                if "raw_excel_df" in st.session_state:
-                    del st.session_state["raw_excel_df"]
                 if "processed_excel_df" in st.session_state:
                     del st.session_state["processed_excel_df"]
                 if "excel_header_row" in st.session_state:
@@ -658,23 +583,6 @@ class ConfigurationForm:
         except Exception as e:
             st.error(f"❌ Error in row selection: {str(e)}")
             return []
-
-    def _format_row_preview(self, row):
-        """Format a row for preview in the header selection dropdown"""
-        try:
-            # Show first 3 non-null values from the row
-            non_null_values = [
-                str(val) for val in row.values if pd.notna(val) and str(val).strip()
-            ]
-            if non_null_values:
-                preview_text = " | ".join(non_null_values[:3])
-                if len(preview_text) > 50:
-                    preview_text = preview_text[:47] + "..."
-                return preview_text
-            else:
-                return "Empty row"
-        except Exception as e:
-            return f"Error reading row: {str(e)}"
 
     def _render_website_section(self):
         """Render website URL input section with optional batch mode"""
@@ -973,107 +881,17 @@ class ConfigurationForm:
         if "last_pdf_processed" in st.session_state:
             del st.session_state["last_pdf_processed"]
 
-        # Clear Excel-related session state (including new raw preview data)
-        if "raw_excel_df" in st.session_state:
-            del st.session_state["raw_excel_df"]
+        # Clear Excel-related session state
         if "processed_excel_df" in st.session_state:
             del st.session_state["processed_excel_df"]
         if "excel_header_row" in st.session_state:
             del st.session_state["excel_header_row"]
-        if "excel_header_row_selector" in st.session_state:
-            del st.session_state["excel_header_row_selector"]
 
         # Don't clear product_type_selector and base_product_input
         # so user can easily add multiple products of the same type
 
         # Mark draft as completed
         self.draft_manager.mark_draft_completed()
-
-    # ========== IMPROVEMENT #2: Smart Header Detection ==========
-
-    def _detect_header_row_smart(self, preview_df: pd.DataFrame) -> int:
-        """
-        AI-powered heuristic to detect the header row in an Excel file
-
-        Args:
-            preview_df: DataFrame with raw data (no headers applied)
-
-        Returns:
-            Row index most likely to be the header row
-        """
-        scores = []
-
-        # Check up to first 10 rows
-        for idx, row in preview_df.head(10).iterrows():
-            score = 0
-
-            # Check 1: All cells filled (no nulls) - headers usually complete
-            non_null_count = row.notna().sum()
-            if non_null_count == len(row):
-                score += 3
-
-            # Check 2: All unique values - headers should be unique
-            if row.nunique() == len(row):
-                score += 2
-
-            # Check 3: Short text (column names are usually concise)
-            avg_length = row.astype(str).str.len().mean()
-            if avg_length < 20:
-                score += 2
-
-            # Check 4: Contains common header keywords
-            header_keywords = [
-                "name",
-                "id",
-                "description",
-                "price",
-                "code",
-                "product",
-                "brand",
-                "title",
-                "sku",
-                "category",
-            ]
-            text = " ".join(row.astype(str).values).lower()
-            if any(keyword in text for keyword in header_keywords):
-                score += 3
-
-            # Check 5: No numeric-only values (headers are usually text)
-            numeric_count = sum(
-                pd.api.types.is_numeric_dtype(type(val)) for val in row.values
-            )
-            if numeric_count < len(row) / 2:  # Less than 50% numeric
-                score += 1
-
-            scores.append((idx, score))
-
-        # Return row with highest score
-        best_row = max(scores, key=lambda x: x[1])
-        return best_row[0]
-
-    def _apply_header_row(self, header_row: int):
-        """Apply the selected header row and process the Excel file"""
-        with st.spinner("Processing Excel file with selected headers..."):
-            try:
-                st.session_state.current_excel_file.seek(0)
-                processed_df = process_excel_file(
-                    st.session_state.current_excel_file, header=header_row
-                )
-                if processed_df is not None and not processed_df.empty:
-                    st.session_state.processed_excel_df = processed_df
-                    st.session_state.excel_header_row = header_row
-                    st.success(f"✅ Data processed with row {header_row} as headers")
-                    st.rerun()
-                else:
-                    st.error(
-                        "❌ Error processing file with selected headers. The result is empty."
-                    )
-                    if "processed_excel_df" in st.session_state:
-                        del st.session_state["processed_excel_df"]
-            except Exception as e:
-                st.error(f"❌ Error processing Excel: {str(e)}")
-                if "processed_excel_df" in st.session_state:
-                    del st.session_state["processed_excel_df"]
 
     # ========== IMPROVEMENT #4: Unified Preview ==========
 
