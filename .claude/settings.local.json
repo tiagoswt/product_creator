@@ -19,7 +19,8 @@
       "Bash(do git rm --cached $f)",
       "Bash(done)",
       "Bash(git mv:*)",
-      "Bash(timeout 5 bash -c \"while ! curl -s http://localhost:8501 > /dev/null; do sleep 0.5; done && echo ''App is running''\":*)"
+      "Bash(timeout 5 bash -c \"while ! curl -s http://localhost:8501 > /dev/null; do sleep 0.5; done && echo ''App is running''\":*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
