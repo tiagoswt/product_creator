@@ -25,7 +25,8 @@ EAN: EAN barcode (if available);
     Weight: Product weight in grams (numeric without quotes, e.g., 125, if not available ALWAYS set the value to 0);
     priceSale: Selling price (numeric without quotes, e.g., 29.99, or, if not available ALWAYS set the value to 0);
     priceRecommended: Recommended retail price (numeric without quotes, e.g., 39.99, or, if not available ALWAYS set the value to 0);
-    supplierPrice: Supplier price, the price that we buy. Is always less that the priceSale (numeric without quotes, e.g., 39.99 ALWAYS set 0 ifnot available)
+    supplierPrice: Supplier price, the price that we buy. Is always less that the priceSale (numeric without quotes, e.g., 39.99 ALWAYS set 0 ifnot available);
+    HSCode: HS Code classification for customs (8-digit code, will be automatically classified by the system);
 
 
 IMPORTANT:
@@ -58,7 +59,8 @@ Respond ONLY with valid JSON in this exact structure:
 "Weight": 1,
 "priceSale": "",
 "priceRecommended": "",
-"supplierPrice":""
+"supplierPrice":"",
+"HSCode": ""
 }}]
 
 Important Notes

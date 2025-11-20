@@ -96,6 +96,7 @@ Weight: Product weight in grams (numeric, e.g., 125, ALWAYS 0 if not available);
 priceSale: Selling price (numeric, e.g., 89.99, ALWAYS 0 if not available);
 priceRecommended: Recommended retail price (numeric, e.g., 99.99, ALWAYS 0 if not available);
 supplierPrice: Supplier cost price (numeric, always less than priceSale, ALWAYS 0 if not available);
+HSCode: HS Code classification for customs (8-digit code, will be automatically classified by the system);
 
 Input Text
 {text}
@@ -132,7 +133,8 @@ json{
       "Weight": 0,
       "priceSale": 0,
       "priceRecommended": 0,
-      "supplierPrice": 0
+      "supplierPrice": 0,
+      "HSCode": ""
     }]
 }
 Important Notes

@@ -89,19 +89,18 @@ def set_hscode_in_product_data(product_data, hscode, product_type=None):
     if isinstance(product_data, list):
         # Array format (subtype)
         for item in product_data:
-            item["HSCode"] = hscode  # Legacy format
-            item["hsCode"] = hscode  # New format
+            item["HSCode"] = hscode
     elif isinstance(product_data, dict):
         if "Subtypes" in product_data:
-            # Cosmetics format - set only in subtypes, not root
+            # Cosmetics, Fragrance, Supplement format - set in subtypes array
             for subtype in product_data["Subtypes"]:
                 subtype["HSCode"] = hscode
         elif "catalogB" in product_data:
             # Legacy format
             product_data["catalogB"]["hscode"] = hscode
         else:
-            # Flat format (fragrance or other)
-            product_data["hscode"] = hscode
+            # Fallback: if no Subtypes array found, set at root level
+            product_data["HSCode"] = hscode
 
 
 def place_hscode_in_correct_location(product_data, hscode, product_type):
@@ -130,24 +129,19 @@ def place_hscode_in_correct_location(product_data, hscode, product_type):
                 # New flat format
                 product_data["HSCode"] = hscode
 
-    elif product_type == "cosmetics":
-        # For cosmetics (flat structure with Subtypes array)
+    elif product_type in ["cosmetics", "fragrance", "supplement", "tech"]:
+        # For all products with Subtypes array structure
         if isinstance(product_data, dict):
             if "Subtypes" in product_data:
-                # New format - set HSCode only in subtypes, not root level
+                # Set HSCode in subtypes array (consistent for all product types)
                 for subtype in product_data["Subtypes"]:
                     subtype["HSCode"] = hscode
             elif "catalogB" in product_data:
                 # Legacy format
                 product_data["catalogB"]["hscode"] = hscode
             else:
-                # Fallback
+                # Fallback: set at root level if no Subtypes array found
                 product_data["HSCode"] = hscode
-
-    elif product_type == "fragrance":
-        # Fragrance has flat structure, no catalogB
-        if isinstance(product_data, dict):
-            product_data["hscode"] = hscode
 
     else:
         # Unknown product type, use safe fallback
@@ -155,7 +149,11 @@ def place_hscode_in_correct_location(product_data, hscode, product_type):
             for item in product_data:
                 item["HSCode"] = hscode
         elif isinstance(product_data, dict):
-            product_data["HSCode"] = hscode
+            if "Subtypes" in product_data:
+                for subtype in product_data["Subtypes"]:
+                    subtype["HSCode"] = hscode
+            else:
+                product_data["HSCode"] = hscode
 
     return product_data
 
