@@ -36,7 +36,7 @@ DescriptionEN: SEO-optimized marketing description in HTML format (MANDATORY STR
     Perfume Story Section (100-120 words):
 
         CRITICAL: Word count must be between 100-120 words for this section only
-        Start with "<strong>Brand Product name</strong> ..."
+        Start with "<strong>What is the story of Brand Product name?</strong> ..."
         Tell the perfume's story: inspiration, creation, emotions it evokes
         Describe the olfactory journey and experience
         Connect fragrance notes to feelings, memories, or lifestyle
@@ -44,6 +44,20 @@ DescriptionEN: SEO-optimized marketing description in HTML format (MANDATORY STR
         Make it personal and evocative, not technical
         Wrap in <p> tags
 
+    Line break
+    Fragrance Features:
+        Must include the heading "<p><strong>Fragrance Features:</strong></p>" exactly as shown
+        Use <ul> and <li> tags for bullet points
+        Specific feature or diferentiation feature of the fragance
+        Each bullet should be concise and benefit-focused
+
+    Line break
+    Fragrance Composition (100-120 words):
+         Must include the heading "<p><strong>Fragrance Composition:</strong></p>" exactly as shown
+         Write in a rich, elegant, sensory-driven style that highlights the evolution of the fragrance from top to heart to base.
+        Use flowing, expressive sentences similar in tone to the following style: vivid introductions of notes, emphasis on harmony, movement, and emotional resonance, and a luxurious, refined atmosphere.
+        Describe the fragrance in an elegant, evocative, and sensory-rich way. Highlight the evolution of the scent and the interplay between its notes using smooth, expressive language rather than lists or bullet points. The tone should feel refined, immersive, and sophisticated, capturing the character and mood of the fragrance while giving a sense of depth, movement, and artistry to the composition. 
+        Avoid bullet points or simple listings; instead create a smooth, narrative composition that feels immersive, modern, and sophisticated.
 
 HTML FORMATTING REQUIREMENTS:
 
