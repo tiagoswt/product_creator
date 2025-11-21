@@ -14,7 +14,37 @@ from psycopg2.extras import RealDictCursor
 import json
 import os
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
+
+
+def _sanitize_for_postgres(data: Any) -> Any:
+    """
+    Remove NUL characters (0x00) from data to prevent PostgreSQL errors.
+    PostgreSQL TEXT/VARCHAR columns cannot store NUL characters.
+
+    Args:
+        data: Any data type (str, dict, list, etc.)
+
+    Returns:
+        Sanitized data with NUL characters removed from all strings
+    """
+    if data is None:
+        return None
+
+    if isinstance(data, str):
+        # Remove NUL characters from strings
+        return data.replace('\x00', '')
+
+    if isinstance(data, dict):
+        # Recursively sanitize dictionary values
+        return {key: _sanitize_for_postgres(value) for key, value in data.items()}
+
+    if isinstance(data, list):
+        # Recursively sanitize list items
+        return [_sanitize_for_postgres(item) for item in data]
+
+    # Return other types unchanged (int, float, bool, etc.)
+    return data
 
 
 def extract_brand_from_json(extracted_json: Dict) -> str:
@@ -420,6 +450,15 @@ class EvaluationDB:
         print(f"Input text length: {len(input_text)}")
         print(f"JSON keys: {list(extracted_json.keys())}")
 
+        # Sanitize data to remove NUL characters before database insert
+        input_text = _sanitize_for_postgres(input_text)
+        extracted_json = _sanitize_for_postgres(extracted_json)
+        llm_reasoning = _sanitize_for_postgres(llm_reasoning or "No reasoning provided")
+        brand = _sanitize_for_postgres(brand)
+        product_name = _sanitize_for_postgres(product_name)
+        username = _sanitize_for_postgres(username)
+        user_name = _sanitize_for_postgres(user_name)
+
         query = """
         INSERT INTO evaluations (
             product_config_id, input_text, extracted_json,
@@ -432,15 +471,15 @@ class EvaluationDB:
 
         params = (
             product_config_id,
-            input_text,  # FIXED: Store complete input text
+            input_text,  # FIXED: Store complete input text (sanitized)
             json.dumps(
                 extracted_json, ensure_ascii=False
-            ),  # FIXED: Store complete JSON
+            ),  # FIXED: Store complete JSON (sanitized)
             scores.get("structure_score", 3),
             scores.get("accuracy_score", 3),
             scores.get("translation_score", 3),
             scores.get("overall_score", 3.0),
-            llm_reasoning or "No reasoning provided",
+            llm_reasoning,
             evaluation_model or "Unknown model",
             product_type,
             brand,
@@ -542,6 +581,15 @@ class EvaluationDB:
         eval_time = openevals_results.get("evaluation_time", 0)
         evaluation_model = f"openevals/gpt-4o-mini (Time: {eval_time:.2f}s)"
 
+        # Sanitize data to remove NUL characters before database insert
+        input_text = _sanitize_for_postgres(input_text)
+        extracted_json = _sanitize_for_postgres(extracted_json)
+        llm_reasoning = _sanitize_for_postgres(llm_reasoning)
+        brand = _sanitize_for_postgres(brand)
+        product_name = _sanitize_for_postgres(product_name)
+        username = _sanitize_for_postgres(username)
+        user_name = _sanitize_for_postgres(user_name)
+
         query = """
         INSERT INTO evaluations (
             product_config_id, input_text, extracted_json,
@@ -554,8 +602,8 @@ class EvaluationDB:
 
         params = (
             product_config_id,
-            input_text,  # FIXED: Store actual input text
-            json.dumps(extracted_json, ensure_ascii=False),  # FIXED: Store actual JSON
+            input_text,  # FIXED: Store actual input text (sanitized)
+            json.dumps(extracted_json, ensure_ascii=False),  # FIXED: Store actual JSON (sanitized)
             structure_score,
             content_score,
             translation_score,
@@ -1222,6 +1270,15 @@ class EvaluationDB:
             else config.DEFAULT_TEMPERATURE
         )
 
+        # Sanitize data to remove NUL characters before database insert
+        input_text = _sanitize_for_postgres(input_text)
+        extracted_json = _sanitize_for_postgres(extracted_json)
+        llm_reasoning = _sanitize_for_postgres(llm_reasoning or "No reasoning provided")
+        brand = _sanitize_for_postgres(brand)
+        product_name = _sanitize_for_postgres(product_name)
+        username = _sanitize_for_postgres(username)
+        user_name = _sanitize_for_postgres(user_name)
+
         # Check if production_model_id column exists
         has_production_column = self._production_model_column_exists()
 
@@ -1243,13 +1300,13 @@ class EvaluationDB:
 
             params = (
                 product_config_id,
-                input_text[:100000],
-                json.dumps(extracted_json, ensure_ascii=False),
+                input_text[:100000],  # (sanitized)
+                json.dumps(extracted_json, ensure_ascii=False),  # (sanitized)
                 scores.get("structure_score", 3),
                 scores.get("accuracy_score", 3),
                 scores.get("translation_score", 3),
                 scores.get("overall_score", 3.0),
-                llm_reasoning or "No reasoning provided",
+                llm_reasoning,
                 evaluation_model or "Unknown model",
                 product_type,
                 brand,
@@ -1276,13 +1333,13 @@ class EvaluationDB:
 
             params = (
                 product_config_id,
-                input_text[:100000],
-                json.dumps(extracted_json, ensure_ascii=False),
+                input_text[:100000],  # (sanitized)
+                json.dumps(extracted_json, ensure_ascii=False),  # (sanitized)
                 scores.get("structure_score", 3),
                 scores.get("accuracy_score", 3),
                 scores.get("translation_score", 3),
                 scores.get("overall_score", 3.0),
-                llm_reasoning or "No reasoning provided",
+                llm_reasoning,
                 evaluation_model or "Unknown model",
                 product_type,
                 brand,

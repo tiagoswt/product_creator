@@ -150,8 +150,17 @@ Respond with ONLY valid JSON:
                     production_temperature=production_temperature,
                 )
 
-        except Exception:
-            # Silent failure - don't clutter UI with evaluation errors
+        except Exception as e:
+            # Log the error for debugging (especially database issues like NUL characters)
+            import traceback
+            error_msg = str(e)
+            print(f"⚠️ Evaluation failed: {error_msg}")
+            print(f"Full traceback: {traceback.format_exc()}")
+
+            # Show user-friendly error in UI
+            if "NUL" in error_msg or "0x00" in error_msg:
+                print("Note: This was a NUL character database error (should be fixed by sanitization)")
+
             return None
 
     def _evaluate_with_fallback(
