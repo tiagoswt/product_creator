@@ -30,14 +30,14 @@ Root Level Fields (Marketing Content):
             Wrap in <blockquote> tags
         Line break 
         Key Benefits Section:
-            Must include the heading "<h3>Key Benefits:</h3>" exactly as shown
+            Must include the "<strong>Key Benefits:</strong>" exactly as shown
             Use <ul> and <li> tags for bullet points
             Include target health goals and wellness benefits
             Note certifications (organic, non-GMO, gluten-free, vegan, etc.) if present
             Each bullet should be concise and benefit-focused
         Line break 
         Active Ingredients Section: (if applicable)
-            Must include the heading "<h3>Active Ingredients:</h3>" exactly as shown
+            Must include the "<strong>Active Ingredients:</strong>" exactly as shown
             Use <ul> and <li> tags for bullet list
             Ingredient names in <strong> tags
             Botanical names or sources in <em> tags (if applicable)
@@ -54,7 +54,7 @@ Root Level Fields (Marketing Content):
             Wrap in <p> tags
 
     HTML FORMATTING REQUIREMENTS:
-    - Use <h3> tags for section headings: "Key Benefits:" and "Active Ingredients:"
+    - Use <strong> tags for section headings: <strong>"Key Benefits:"</strong> and <strong>"Active Ingredients:"</strong>
     - Use <ul> and <li> tags for bullet points
     - Use <strong> tags for ingredient names and dosages
     - Use <em> tags for botanical names
