@@ -62,7 +62,7 @@ Root Level Fields (Marketing Content):
     - Ensure proper HTML structure and valid syntax
 
     DescriptionPT: SEO-optimized marketing DescriptionEN COMPLETELY TRANSLATED to European Portuguese of Portugal (PT-PT) in HTML format (same HTML structure as DescriptionEN).
-    howToType: (you need to convert the string into the correct integer codification) like: "posology" as "5", "dosage" as "2", "details" as "3"
+    howToType: (you need to convert the string into the correct integer codification) like: "posology" as "5"
     HowToEN: Detailed posology instructions including recommended daily intake, timing (with/without food, morning/evening), and any specific usage guidelines or warnings
     HowToPT: Detailed posology instructions in European Portuguese of Portugal
 
@@ -111,7 +111,7 @@ Respond ONLY with valid JSON in this exact structure:
   "UrlPT": "",
   "HowToEN": "",
   "HowToPT": "",
-  "HowtoType":"",
+  "HowtoType":"5",
   "ModelName":"deo",
   "CategoryId": 1,
   "Subtypes": [{
