@@ -1,4 +1,4 @@
-# SweetCare AI Product Content Creator
+# AI Product Content Creator
 
 An enterprise-grade Streamlit application for automated e-commerce product data extraction from multiple sources (PDFs, Excel files, websites). Uses LLMs (OpenAI GPT-4, Groq) to extract structured product information for cosmetics, fragrances, and supplements, with HS Code classification and a 3-metric quality evaluation system.
 
