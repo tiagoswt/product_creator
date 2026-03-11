@@ -1,0 +1,4 @@
+Prompt,Exact Accuracy,Partial Accuracy,Exact Matches,Errors,Status
+prompt_HCP,24.0%,86.0%,24/100,0,✅ Success
+prompt_01,37.0%,89.0%,37/100,0,✅ Success
+prompt_reasoning_classification,30.0%,85.0%,30/100,0,✅ Success

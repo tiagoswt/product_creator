@@ -1,0 +1,285 @@
+predicted_category,raw_response,model_used,usage,status,latency,exact_match,partial_match,true_category,product_description,prompt_name,model,from_cache,timestamp,langsmith_enabled,api_provider
+skin/lip-care/sun-protection,skin/lip-care/sun-protection,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 3986, 'completion_tokens': 9, 'total_tokens': 3995}",success,0.3931910991668701,False,False,sun-tan/eyes-lips-sensitive-areas,"Babe-Fotoprotector Lip Protection SPF50 Invisible -Fotoprotector Lip Protection SPF50 Invisibleallows aprolonged protection and hydration of the lips, giving a transparent finish.   Water resistant an...",prompt_reason_04,meta-llama/llama-4-maverick-17b-128e-instruct,True,2025-08-07T09:15:27.473961,True,groq
+skin/seruns/global-anti-aging,skin/seruns/global-anti-aging,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4009, 'completion_tokens': 10, 'total_tokens': 4019}",success,0.37912845611572266,False,True,skin/dark-spots/seruns,"Rilastil-Intense C Gel Serum-Intense C Gel Serum is a protective serum specially formulated for skin that is subject to oxidizing aggressors,such as the sun, smoke, pollution, and intense physical act...",prompt_reason_04,meta-llama/llama-4-maverick-17b-128e-instruct,True,2025-08-07T09:15:27.476951,True,groq
+health-care/eye-care,health-care/eye-care,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4100, 'completion_tokens': 6, 'total_tokens': 4106}",success,0.42551279067993164,False,True,health-care/contact-lenses,"Montana Eyewear-Blue Light Filter Glasses HBLF73A Turtle -Lightweight, practical and very comfortable, perfect for everyday life!   Choose the diopter that best suits your vision!   Ideal for both her...",prompt_reason_04,meta-llama/llama-4-maverick-17b-128e-instruct,True,2025-08-07T09:15:27.480005,True,groq
+hair/sensitive-scalp/preshampoo-head-scrub,hair/sensitive-scalp/preshampoo-head-scrub,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4040, 'completion_tokens': 14, 'total_tokens': 4054}",success,0.45716047286987305,False,True,hair/seruns-leave-in/sensitive-scalp,Lador-Tea Tree Scalp Clinic Hair Pack-Experience the soothing benefits of Tea Tree Scalp Clinic Hair Pack.Effectively removes dead skin cells and soothes the scalp!Formulated with natural ingredients ...,prompt_reason_04,meta-llama/llama-4-maverick-17b-128e-instruct,True,2025-08-07T09:15:27.482928,True,groq
+skin/loss-firmness/specific-moisturizers,skin/loss-firmness/specific-moisturizers,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4067, 'completion_tokens': 13, 'total_tokens': 4080}",success,0.3786742687225342,True,True,skin/loss-firmness/specific-moisturizers,Roc-Multi Correxion Firm + Lift Firming Cream-Restore facial firmness and redefine contours with Roc Multi Correxion Firm + Lift Anti-Sagging Firming Cream — clinically proven to combat sagging skin.L...,prompt_reason_04,meta-llama/llama-4-maverick-17b-128e-instruct,True,2025-08-07T09:15:27.485917,True,groq
+hair/damaged-hair/masks,hair/damaged-hair/masks,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4126, 'completion_tokens': 9, 'total_tokens': 4135}",success,0.38776183128356934,False,True,hair/hair-mask/straightening,"Cotril-K-Smooth Supreme Keratin Mask-Restore and nourish with Cotril K-Smooth Supreme Keratin Mask. This moisturizing treatment disciplines, detangles, and fights frizz, helping to prolong salon kerat...",prompt_reason_04,meta-llama/llama-4-maverick-17b-128e-instruct,True,2025-08-07T09:15:27.487921,True,groq
+fragrance,fragrance,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4171, 'completion_tokens': 4, 'total_tokens': 4175}",success,0.4121420383453369,False,False,fragrance/women,"Korloff-Écorce d'Argent Eau de Parfum-Discover Korloff Écorce d'Argent Eau de Parfum — a niche fragrance where woody elegance meets fresh bergamot, inspired by the grandeur of Saint Petersburg’s Peter...",prompt_reason_04,meta-llama/llama-4-maverick-17b-128e-instruct,True,2025-08-07T09:15:27.488913,True,groq
+skin/cleansers-tonners/sensitive-skin,skin/cleansers-tonners/sensitive-skin,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4062, 'completion_tokens': 11, 'total_tokens': 4073}",success,0.4877498149871826,False,True,skin/cleansers-tonners/combination-to-oily-skin,"Tocobo-Vita Berry Pore Toner-Ethically produced and Vegan-friendly, Vita Berry Pore Toner is formulated with 50,000ppm of berry water, which includes wild strawberry extract that is abundant in organi...",prompt_reason_04,meta-llama/llama-4-maverick-17b-128e-instruct,True,2025-08-07T09:15:27.491398,True,groq
+skin/cleansers-tonners/combination-to-oily-skin,skin/cleansers-tonners/combination-to-oily-skin,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 3989, 'completion_tokens': 14, 'total_tokens': 4003}",success,0.4046342372894287,False,False,makeup/complexion/makeup-removers,Clinique-Rinse Off Foaming Cleanser -Rinse off foaming cleanser has the formula indicated for skin type 2 - dry the combination skin.   The combination todry skin will thank this product!    	 	It is ...,prompt_reason_04,meta-llama/llama-4-maverick-17b-128e-instruct,True,2025-08-07T09:15:27.492393,True,groq
+skin/dark-spots/seruns,skin/dark-spots/seruns,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4055, 'completion_tokens': 9, 'total_tokens': 4064}",success,0.39801788330078125,True,True,skin/dark-spots/seruns,"Sesderma-Azelac Ru Depigmenting Ampoules Ampoules-Azelac Ru depigmenting ampouleshelp prevent and reduce hyperpigmentation effectively.   Depigmenting action,  anti-inflammatory and antioxidant!   Tha...",prompt_reason_04,meta-llama/llama-4-maverick-17b-128e-instruct,True,2025-08-07T09:15:27.494383,True,groq
+babies/pregnancy,"To categorize the product ""Babe-Fotoprotector Lip Protection SPF50 Invisible"", let's work through the hierarchy systematically.
+
+### LEVEL1: PRIMARY CATEGORY DECISION
+
+1. **Is this for animals or medical treatment?** No, it's not for animals or medical treatment.
+2. **Is this specifically for men?** No, it's not specifically for men.
+3. **Is this specifically for babies/pregnancy?** The product name includes ""Babe"", suggesting it's for babies.
+
+Since it's related to babies, we proceed with the categorization under ""mom-baby"".
+
+### LEVEL2: SUBCATEGORY REFINEMENT
+
+Given that it's a lip protection product with SPF50, it's related to sun protection. Under ""mom-baby"", the relevant subcategory is ""sun-protection"".
+
+### LEVEL3: CONDITION-SPECIFIC REFINEMENT
+
+The product is for lip protection, providing hydration and protection against UVB/UVA, blue light, and pollution. It's designed for babies, and its primary function is sun protection.
+
+Therefore, the most appropriate category path is: mom-baby/sun-protection",meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4522, 'completion_tokens': 229, 'total_tokens': 4751}",success,0.8350832462310791,False,False,sun-tan/eyes-lips-sensitive-areas,"Babe-Fotoprotector Lip Protection SPF50 Invisible -Fotoprotector Lip Protection SPF50 Invisibleallows aprolonged protection and hydration of the lips, giving a transparent finish.   Water resistant an...",prompt_HCP,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:28.338433,True,groq
+babies/pregnancy,"To categorize the product ""Rilastil-Intense C Gel Serum"", let's work through the hierarchy systematically.
+
+### LEVEL1: PRIMARY CATEGORY DECISION
+
+1. **Is this for animals or medical treatment?** 
+   - The product is not for animals or medical treatment; it's a skincare product.
+   - Answer: NO
+
+2. **Is this specifically for men?** 
+   - The product description doesn't mention it's specifically for men.
+   - Answer: NO
+
+3. **Is this specifically for babies/pregnancy?** 
+   - The product is not mentioned to be for babies or pregnancy.
+   - Answer: NO
+
+4. **What is the primary function?** 
+   - The product is described as a ""protective serum"" for skin, indicating its primary function is face skincare.
+   - Answer: Face skincare
+
+Thus, the primary category is **skin**.
+
+### LEVEL2: SUBCATEGORY REFINEMENT
+
+For **SKIN** products:
+- The product is a serum.
+- **Serum → skin/seruns/*** 
+
+### LEVEL3: CONDITION-SPECIFIC REFINEMENT
+
+The product is described to combat oxidative stress, exerting a revitalizing, illuminating, moisturizing, and rejuvenating action, thanks to hyaluronic acid and High Tech Vitamin C. This indicates it's used for anti-aging purposes.
+
+- **Anti-aging/wrinkles → skin/firming-anti-ageing/seruns** (since it's a serum and has anti-aging benefits)
+
+Therefore, the final category path is: **skin/seruns/firming-anti-ageing** is not directly available, but we can conclude it falls under **skin/firming-anti-ageing/seruns**.
+
+The final answer is: skin/firming-anti-ageing/seruns",meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4545, 'completion_tokens': 376, 'total_tokens': 4921}",success,1.0789852142333984,False,False,skin/dark-spots/seruns,"Rilastil-Intense C Gel Serum-Intense C Gel Serum is a protective serum specially formulated for skin that is subject to oxidizing aggressors,such as the sun, smoke, pollution, and intense physical act...",prompt_HCP,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:29.956153,True,groq
+babies/pregnancy,"To categorize the product ""Montana Eyewear-Blue Light Filter Glasses HBLF73A Turtle"", we need to follow the hierarchical categorization process.
+
+## Step 1: Primary Category Decision
+First, we need to determine if the product is for animals or medical treatment, specifically for men, babies/pregnancy, or its primary function.
+
+- The product is not for animals or medical treatment in the traditional sense (though it is related to eye health), so we continue.
+- It's not specifically for men or babies/pregnancy.
+- The primary function is related to eyewear, specifically blue light filter glasses.
+
+## Step 2: Analyzing the Product Description
+The product is described as eyewear designed to filter out blue light from digital devices, aiming to reduce eye strain and potentially improve sleep. It's not directly related to skincare, hair care, body care, makeup, fragrance, or sun protection.
+
+## Step 3: Categorizing the Product
+Since the product is eyewear and not directly related to the categories like skin, hair, body, or fragrance, we need to look for a category that fits. The product is related to health-care, specifically to eye care.
+
+## Step 4: Final Categorization
+Upon closer inspection, the product is best categorized under health-care because it is related to eye health and protection. More specifically, it falls under health-care/contact-lenses or a related subcategory, but since ""eyewear"" is not directly listed, we need to consider the closest related category.
+
+The final answer is: health-care/contact-lenses",meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4636, 'completion_tokens': 324, 'total_tokens': 4960}",success,1.029987096786499,False,False,health-care/contact-lenses,"Montana Eyewear-Blue Light Filter Glasses HBLF73A Turtle -Lightweight, practical and very comfortable, perfect for everyday life!   Choose the diopter that best suits your vision!   Ideal for both her...",prompt_HCP,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:31.525969,True,groq
+babies/pregnancy,"To categorize the product ""Lador-Tea Tree Scalp Clinic Hair Pack,"" we will follow the hierarchical categorization process.
+
+### LEVEL1: PRIMARY CATEGORY DECISION
+
+1. **Is this for animals or medical treatment?** 
+   - The product is not for animals or medical treatment; it's a hair care product.
+   - Proceed to Question 2.
+
+2. **Is this specifically for men?** 
+   - The product is not specifically for men.
+   - Proceed to Question 3.
+
+3. **Is this specifically for babies/pregnancy?** 
+   - The product is not for babies or pregnancy.
+   - Proceed to Question 4.
+
+4. **What is the primary function?** 
+   - The product is for hair care.
+   - Primary category: hair/*
+
+### LEVEL2: SUBCATEGORY REFINEMENT
+
+- The product is a hair pack, which is used for treating and nourishing the hair and scalp.
+- Subcategory: hair/masks/*
+
+### LEVEL3: CONDITION-SPECIFIC REFINEMENT
+
+- The product is formulated to soothe the scalp, remove dead skin cells, address dandruff, excess sebum, and itching, and improve scalp health.
+- It contains ingredients like Tea Tree Extract, known for its anti-dandruff and soothing properties.
+- Condition-specific refinement: hair/anti-dandruff/masks
+
+Therefore, the final category path for ""Lador-Tea Tree Scalp Clinic Hair Pack"" is: hair/anti-dandruff/masks",meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4576, 'completion_tokens': 316, 'total_tokens': 4892}",success,0.9443879127502441,False,False,hair/seruns-leave-in/sensitive-scalp,Lador-Tea Tree Scalp Clinic Hair Pack-Experience the soothing benefits of Tea Tree Scalp Clinic Hair Pack.Effectively removes dead skin cells and soothes the scalp!Formulated with natural ingredients ...,prompt_HCP,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:33.002624,True,groq
+babies/pregnancy,"To categorize the product ""Roc-Multi Correxion Firm + Lift Firming Cream"", let's work through the hierarchy systematically.
+
+1. **Primary Category Decision (Level 1):**
+   - Is it for animals or medical treatment? No
+   - Is it specifically for men? No
+   - Is it specifically for babies/pregnancy? No
+   - What is the primary function? Face skincare → skin/*
+
+2. **Subcategory Refinement (Level 2):**
+   - Since it's a face skincare product, we look into the subcategories under ""skin"".
+   - The product is described as a ""Firming Cream"", indicating it's a moisturizer with anti-aging benefits.
+   - Therefore, it falls under skin/moisturisers/*
+
+3. **Condition-Specific Refinement (Level 3):**
+   - The product is designed to combat sagging skin, improve skin firmness and elasticity, and is described as having anti-aging benefits.
+   - It targets visible signs of aging, such as loss of firmness.
+   - Therefore, it is related to anti-aging and firming.
+
+Putting it all together:
+- Level 1: skin/*
+- Level 2: skin/moisturisers/*
+- Level 3: Given its anti-aging and firming properties, it is best categorized under skin/firming-anti-ageing or a related subcategory. However, ""firming-anti-ageing"" is not directly listed under ""skin/moisturisers"". The closest relevant category that reflects its anti-aging and firming nature is considered.
+
+The final category path is: skin/moisturisers/firming-anti-ageing is not directly available, but based on the given hierarchy and examples, the closest match is: skin/firming-anti-ageing/specific-moisturizers.
+
+The final answer is: skin/firming-anti-ageing/specific-moisturizers",meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4603, 'completion_tokens': 398, 'total_tokens': 5001}",success,1.3909533023834229,False,False,skin/loss-firmness/specific-moisturizers,Roc-Multi Correxion Firm + Lift Firming Cream-Restore facial firmness and redefine contours with Roc Multi Correxion Firm + Lift Anti-Sagging Firming Cream — clinically proven to combat sagging skin.L...,prompt_HCP,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:34.929334,True,groq
+babies/pregnancy,"To categorize the product ""Cotril-K-Smooth Supreme Keratin Mask"", let's follow the hierarchical categorization process step by step.
+
+### LEVEL1: PRIMARY CATEGORY DECISION
+
+1. **Is this for animals or medical treatment?** 
+   - The product is not for animals or medical treatment; it's a hair care product.
+   - Answer: NO
+
+2. **Is this specifically for men?** 
+   - The product is not specifically for men.
+   - Answer: NO
+
+3. **Is this specifically for babies/pregnancy?** 
+   - The product is not for babies or pregnancy.
+   - Answer: NO
+
+4. **What is the primary function?** 
+   - The product is for hair care, specifically a mask.
+   - Answer: Hair care → hair/*
+
+### LEVEL2: SUBCATEGORY REFINEMENT
+
+Since the primary function is hair care, we refine it further:
+- The product is a hair mask.
+- Category: hair/*
+- Subcategory: hair/masks/*
+
+### LEVEL3: CONDITION-SPECIFIC REFINEMENT
+
+The product is described as a keratin mask that nourishes, detangles, and fights frizz, suitable for keratin-treated hair. It doesn't specifically target a medical condition like dandruff, psoriasis, etc., but rather is for general hair care, particularly for dry or damaged hair due to its nourishing and moisturizing properties.
+
+- It's not specifically for a medical condition.
+- It's for dry/damaged hair or for hair that has undergone keratin treatment.
+
+Given the information, the product can be categorized under hair masks, and more specifically, it can be related to dry or damaged hair.
+
+The final category path is: hair/masks/damaged-hair",meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4662, 'completion_tokens': 361, 'total_tokens': 5023}",success,1.0606300830841064,False,False,hair/hair-mask/straightening,"Cotril-K-Smooth Supreme Keratin Mask-Restore and nourish with Cotril K-Smooth Supreme Keratin Mask. This moisturizing treatment disciplines, detangles, and fights frizz, helping to prolong salon kerat...",prompt_HCP,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:36.516193,True,groq
+fragrance,fragrance,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4707, 'completion_tokens': 4, 'total_tokens': 4711}",success,0.4095768928527832,False,False,fragrance/women,"Korloff-Écorce d'Argent Eau de Parfum-Discover Korloff Écorce d'Argent Eau de Parfum — a niche fragrance where woody elegance meets fresh bergamot, inspired by the grandeur of Saint Petersburg’s Peter...",prompt_HCP,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:37.454334,True,groq
+babies/pregnancy,"To categorize the product ""Tocobo-Vita Berry Pore Toner"", let's work through the hierarchy systematically.
+
+### LEVEL1: PRIMARY CATEGORY DECISION
+
+1. **Is this for animals or medical treatment?** No, it's not for animals or medical treatment.
+2. **Is this specifically for men?** No, there's no mention that it's specifically for men.
+3. **Is this specifically for babies/pregnancy?** No, it's not for babies or pregnancy.
+4. **What is the primary function?** It's a toner for face skincare.
+
+Since it's for face skincare, the primary category is **skin**.
+
+### LEVEL2: SUBCATEGORY REFINEMENT
+
+For **skin** products:
+- It's a toner, which falls under **skin/cleansers-tonners**.
+
+### LEVEL3: CONDITION-SPECIFIC REFINEMENT
+
+The product is described as being for minimizing enlarged pores, nourishing the skin, promoting elasticity, and providing moisturizing care. It's also alcohol-free and contains ingredients like berry water and menthol for a cooling sensation. 
+
+Given these characteristics, we can refine the category further. The product is not specifically for a medical condition like atopic dermatitis or psoriasis, but rather for general skincare concerns like pore size and skin texture.
+
+The product is a toner, and its features include nourishing and moisturizing the skin, which can be related to **skin/cleansers-tonners**. Since it's not specifically categorized under a particular skin type (dry, sensitive, etc.) or concern (anti-aging, dark spots, etc.) in the provided hierarchy, we'll stick with the most relevant category.
+
+The final category path is: skin/cleansers-tonners",meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4598, 'completion_tokens': 344, 'total_tokens': 4942}",success,1.134939193725586,False,False,skin/cleansers-tonners/combination-to-oily-skin,"Tocobo-Vita Berry Pore Toner-Ethically produced and Vegan-friendly, Vita Berry Pore Toner is formulated with 50,000ppm of berry water, which includes wild strawberry extract that is abundant in organi...",prompt_HCP,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:39.117792,True,groq
+babies/pregnancy,"To categorize the product ""Clinique-Rinse Off Foaming Cleanser"", let's follow the hierarchical categorization process.
+
+### LEVEL1: PRIMARY CATEGORY DECISION
+
+1. **Is this for animals or medical treatment?** No, it's not for animals or medical treatment.
+2. **Is this specifically for men?** No, there's no mention that it's specifically for men.
+3. **Is this specifically for babies/pregnancy?** No, it's not for babies or pregnancy.
+4. **What is the primary function?** It's a cleanser for face skincare.
+
+Since it's for face skincare, the primary category is **skin**.
+
+### LEVEL2: SUBCATEGORY REFINEMENT
+
+For **SKIN** products, the subcategory refinement is needed. The product is a cleanser.
+
+- The product is a cleanser, so it falls under **skin/cleansers-tonners**.
+
+### LEVEL3: CONDITION-SPECIFIC REFINEMENT
+
+The product is indicated for combination to dry skin. So, we need to refine it further based on skin type.
+
+- The product is suitable for dry skin or combination skin, so it can be categorized under **skin/cleansers-tonners/dry-skin**.
+
+Therefore, the final category path is: **skin/cleansers-tonners/dry-skin**",meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4525, 'completion_tokens': 268, 'total_tokens': 4793}",success,0.952974796295166,False,False,makeup/complexion/makeup-removers,Clinique-Rinse Off Foaming Cleanser -Rinse off foaming cleanser has the formula indicated for skin type 2 - dry the combination skin.   The combination todry skin will thank this product!    	 	It is ...,prompt_HCP,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:40.601857,True,groq
+babies/pregnancy,"To categorize the product ""Sesderma-Azelac Ru Depigmenting Ampoules"", let's follow the hierarchical categorization process.
+
+### LEVEL1: PRIMARY CATEGORY DECISION
+
+1. **Is this for animals or medical treatment?** 
+   - The product is not for animals, and while it has a medical-like application (depigmenting), it's more aligned with skincare. So, NO.
+
+2. **Is this specifically for men?** 
+   - There's no mention of it being for men specifically. So, NO.
+
+3. **Is this specifically for babies/pregnancy?** 
+   - There's no indication it's for babies or pregnancy. So, NO.
+
+4. **What is the primary function?** 
+   - The product is described as ""depigmenting ampoules"" used to ""prevent and reduce hyperpigmentation."" This falls under face skincare, as it's related to skin pigmentation. So, it's related to face skincare.
+
+Thus, the primary category is **skin**.
+
+### LEVEL2: SUBCATEGORY REFINEMENT
+
+For **SKIN** products:
+- The product is a serum given in ampoules form, aimed at reducing hyperpigmentation. So, it falls under **seruns**.
+
+Thus, the subcategory is **skin/seruns**.
+
+### LEVEL3: CONDITION-SPECIFIC REFINEMENT
+
+The product is used for **dark spots** or hyperpigmentation. So, it is related to **dark spots**.
+
+Thus, the specific type is related to **dark-spots**.
+
+Combining these, we get: **skin/dark-spots/seruns**.
+
+The final category path is: skin/dark-spots/seruns",meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4591, 'completion_tokens': 344, 'total_tokens': 4935}",success,1.0902721881866455,False,False,skin/dark-spots/seruns,"Sesderma-Azelac Ru Depigmenting Ampoules Ampoules-Azelac Ru depigmenting ampouleshelp prevent and reduce hyperpigmentation effectively.   Depigmenting action,  anti-inflammatory and antioxidant!   Tha...",prompt_HCP,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:42.224794,True,groq
+sun-tan/lip-care,sun-tan/lip-care,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 5015, 'completion_tokens': 7, 'total_tokens': 5022}",success,0.41945934295654297,False,True,sun-tan/eyes-lips-sensitive-areas,"Babe-Fotoprotector Lip Protection SPF50 Invisible -Fotoprotector Lip Protection SPF50 Invisibleallows aprolonged protection and hydration of the lips, giving a transparent finish.   Water resistant an...",prompt_HCP_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:43.186275,True,groq
+skin/seruns/global-anti-aging,skin/seruns/global-anti-aging,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 5038, 'completion_tokens': 10, 'total_tokens': 5048}",success,0.47309279441833496,False,True,skin/dark-spots/seruns,"Rilastil-Intense C Gel Serum-Intense C Gel Serum is a protective serum specially formulated for skin that is subject to oxidizing aggressors,such as the sun, smoke, pollution, and intense physical act...",prompt_HCP_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:44.188118,True,groq
+health-care/eye-care,health-care/eye-care,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 5129, 'completion_tokens': 6, 'total_tokens': 5135}",success,0.45314478874206543,False,True,health-care/contact-lenses,"Montana Eyewear-Blue Light Filter Glasses HBLF73A Turtle -Lightweight, practical and very comfortable, perfect for everyday life!   Choose the diopter that best suits your vision!   Ideal for both her...",prompt_HCP_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:45.168451,True,groq
+hair/masks/sensitive-scalp,hair/masks/sensitive-scalp,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 5069, 'completion_tokens': 8, 'total_tokens': 5077}",success,0.49771714210510254,False,True,hair/seruns-leave-in/sensitive-scalp,Lador-Tea Tree Scalp Clinic Hair Pack-Experience the soothing benefits of Tea Tree Scalp Clinic Hair Pack.Effectively removes dead skin cells and soothes the scalp!Formulated with natural ingredients ...,prompt_HCP_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:46.197712,True,groq
+skin/moisturisers/loss-firmness/specific-moisturizers,skin/moisturisers/loss-firmness/specific-moisturizers,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 5096, 'completion_tokens': 17, 'total_tokens': 5113}",success,0.43047285079956055,False,True,skin/loss-firmness/specific-moisturizers,Roc-Multi Correxion Firm + Lift Firming Cream-Restore facial firmness and redefine contours with Roc Multi Correxion Firm + Lift Anti-Sagging Firming Cream — clinically proven to combat sagging skin.L...,prompt_HCP_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:47.160600,True,groq
+hair/masks/damaged-hair,hair/masks/damaged-hair,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 5155, 'completion_tokens': 9, 'total_tokens': 5164}",success,0.4673457145690918,False,True,hair/hair-mask/straightening,"Cotril-K-Smooth Supreme Keratin Mask-Restore and nourish with Cotril K-Smooth Supreme Keratin Mask. This moisturizing treatment disciplines, detangles, and fights frizz, helping to prolong salon kerat...",prompt_HCP_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:48.157435,True,groq
+fragrance,fragrance,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 5200, 'completion_tokens': 4, 'total_tokens': 5204}",success,0.44977879524230957,False,False,fragrance/women,"Korloff-Écorce d'Argent Eau de Parfum-Discover Korloff Écorce d'Argent Eau de Parfum — a niche fragrance where woody elegance meets fresh bergamot, inspired by the grandeur of Saint Petersburg’s Peter...",prompt_HCP_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:49.144742,True,groq
+skin/cleansers-tonners/sensitive-skin,skin/cleansers-tonners/sensitive-skin,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 5091, 'completion_tokens': 11, 'total_tokens': 5102}",success,0.427504301071167,False,True,skin/cleansers-tonners/combination-to-oily-skin,"Tocobo-Vita Berry Pore Toner-Ethically produced and Vegan-friendly, Vita Berry Pore Toner is formulated with 50,000ppm of berry water, which includes wild strawberry extract that is abundant in organi...",prompt_HCP_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:50.095536,True,groq
+skin/cleansers-tonners/dry-skin,skin/cleansers-tonners/dry-skin,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 5018, 'completion_tokens': 11, 'total_tokens': 5029}",success,0.4207332134246826,False,False,makeup/complexion/makeup-removers,Clinique-Rinse Off Foaming Cleanser -Rinse off foaming cleanser has the formula indicated for skin type 2 - dry the combination skin.   The combination todry skin will thank this product!    	 	It is ...,prompt_HCP_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:51.047942,True,groq
+skin/dark-spots/seruns,skin/dark-spots/seruns,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 5084, 'completion_tokens': 9, 'total_tokens': 5093}",success,0.43716907501220703,True,True,skin/dark-spots/seruns,"Sesderma-Azelac Ru Depigmenting Ampoules Ampoules-Azelac Ru depigmenting ampouleshelp prevent and reduce hyperpigmentation effectively.   Depigmenting action,  anti-inflammatory and antioxidant!   Tha...",prompt_HCP_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:52.015520,True,groq
+sun-tan/eyes-lips-sensitive-areas/lip-care,sun-tan/eyes-lips-sensitive-areas/lip-care,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4354, 'completion_tokens': 14, 'total_tokens': 4368}",success,0.43691134452819824,False,True,sun-tan/eyes-lips-sensitive-areas,"Babe-Fotoprotector Lip Protection SPF50 Invisible -Fotoprotector Lip Protection SPF50 Invisibleallows aprolonged protection and hydration of the lips, giving a transparent finish.   Water resistant an...",prompt_reason_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:52.979863,True,groq
+skin/seruns/global-anti-aging,skin/seruns/global-anti-aging,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4377, 'completion_tokens': 10, 'total_tokens': 4387}",success,0.45640039443969727,False,True,skin/dark-spots/seruns,"Rilastil-Intense C Gel Serum-Intense C Gel Serum is a protective serum specially formulated for skin that is subject to oxidizing aggressors,such as the sun, smoke, pollution, and intense physical act...",prompt_reason_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:53.965861,True,groq
+health-care/contact-lenses,health-care/contact-lenses,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4468, 'completion_tokens': 6, 'total_tokens': 4474}",success,0.412062406539917,True,True,health-care/contact-lenses,"Montana Eyewear-Blue Light Filter Glasses HBLF73A Turtle -Lightweight, practical and very comfortable, perfect for everyday life!   Choose the diopter that best suits your vision!   Ideal for both her...",prompt_reason_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:54.902489,True,groq
+hair/hair-mask/sensitive-scalp,hair/hair-mask/sensitive-scalp,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4408, 'completion_tokens': 9, 'total_tokens': 4417}",success,0.4134531021118164,False,True,hair/seruns-leave-in/sensitive-scalp,Lador-Tea Tree Scalp Clinic Hair Pack-Experience the soothing benefits of Tea Tree Scalp Clinic Hair Pack.Effectively removes dead skin cells and soothes the scalp!Formulated with natural ingredients ...,prompt_reason_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:55.846818,True,groq
+skin/moisturisers/loss-firmness,skin/moisturisers/loss-firmness,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4435, 'completion_tokens': 11, 'total_tokens': 4446}",success,0.42100048065185547,False,True,skin/loss-firmness/specific-moisturizers,Roc-Multi Correxion Firm + Lift Firming Cream-Restore facial firmness and redefine contours with Roc Multi Correxion Firm + Lift Anti-Sagging Firming Cream — clinically proven to combat sagging skin.L...,prompt_reason_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:56.793419,True,groq
+hair/hair-mask/damaged-hair,hair/hair-mask/damaged-hair,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4494, 'completion_tokens': 10, 'total_tokens': 4504}",success,0.5765836238861084,False,True,hair/hair-mask/straightening,"Cotril-K-Smooth Supreme Keratin Mask-Restore and nourish with Cotril K-Smooth Supreme Keratin Mask. This moisturizing treatment disciplines, detangles, and fights frizz, helping to prolong salon kerat...",prompt_reason_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:57.895546,True,groq
+fragrance,fragrance,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4539, 'completion_tokens': 4, 'total_tokens': 4543}",success,0.3881409168243408,False,False,fragrance/women,"Korloff-Écorce d'Argent Eau de Parfum-Discover Korloff Écorce d'Argent Eau de Parfum — a niche fragrance where woody elegance meets fresh bergamot, inspired by the grandeur of Saint Petersburg’s Peter...",prompt_reason_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:58.815636,True,groq
+skin/cleansers-tonners/sensitive-skin,skin/cleansers-tonners/sensitive-skin,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4430, 'completion_tokens': 11, 'total_tokens': 4441}",success,0.43987345695495605,False,True,skin/cleansers-tonners/combination-to-oily-skin,"Tocobo-Vita Berry Pore Toner-Ethically produced and Vegan-friendly, Vita Berry Pore Toner is formulated with 50,000ppm of berry water, which includes wild strawberry extract that is abundant in organi...",prompt_reason_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:15:59.789870,True,groq
+skin/cleansers-tonners/combination-to-oily-skin,skin/cleansers-tonners/combination-to-oily-skin,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4357, 'completion_tokens': 14, 'total_tokens': 4371}",success,0.41493749618530273,False,False,makeup/complexion/makeup-removers,Clinique-Rinse Off Foaming Cleanser -Rinse off foaming cleanser has the formula indicated for skin type 2 - dry the combination skin.   The combination todry skin will thank this product!    	 	It is ...,prompt_reason_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:16:00.733513,True,groq
+skin/targeted-correction/lightness-anti-spots,skin/targeted-correction/lightness-anti-spots,meta-llama/llama-4-maverick-17b-128e-instruct,"{'prompt_tokens': 4423, 'completion_tokens': 12, 'total_tokens': 4435}",success,0.3914158344268799,False,True,skin/dark-spots/seruns,"Sesderma-Azelac Ru Depigmenting Ampoules Ampoules-Azelac Ru depigmenting ampouleshelp prevent and reduce hyperpigmentation effectively.   Depigmenting action,  anti-inflammatory and antioxidant!   Tha...",prompt_reason_02,meta-llama/llama-4-maverick-17b-128e-instruct,False,2025-08-07T09:16:01.648009,True,groq

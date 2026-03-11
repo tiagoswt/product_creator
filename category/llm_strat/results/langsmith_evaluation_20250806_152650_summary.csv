@@ -1,0 +1,3 @@
+Prompt,Exact_Accuracy,Partial_Accuracy,Valid_Predictions,Errors
+prompt_HCP_02,0.0%,0.0%,1,0
+prompt_HCP,0.0%,0.0%,0,1

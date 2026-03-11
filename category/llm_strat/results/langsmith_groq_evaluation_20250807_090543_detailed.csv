@@ -1,0 +1,197 @@
+predicted_category,raw_response,model_used,usage,status,latency,exact_match,partial_match,true_category,product_description,prompt_name,model,from_cache,timestamp,langsmith_enabled,api_provider
+sun-tan/eyes-lips-sensitive-areas,"<think>
+Okay, so I need to classify this product called ""Babe-Fotoprotector Lip Protection SPF50 Invisible."" Let me start by understanding what this product is. From the description, it's a lip protection product with SPF50, which means it's a sunscreen for the lips. It's water-resistant, long-lasting, and provides hydration. It also protects against UVB, UVA, blue light, and pollution. The texture is nourishing and moisturizing, repairing dry lips, and it's dermatologically tested.
+
+First, I'll consider the main categories available: BODY, FRAGRANCE, HAIR, HEALTH-CARE, MAKEUP, MEN, MOM-BABY, SKIN, SUN-TAN, SUPPLEMENTS-VITAMINS.
+
+The product is for lip protection, which is part of personal care. Since it's a sunscreen, it's related to sun protection. Now, looking at the categories, SUN-TAN seems relevant because it includes products related to sun protection. But I should also check other categories to make sure.
+
+Looking at the SKIN category, there's a subcategory called lip-care. That seems relevant because the product is for lip protection. However, the product is specifically a sun protectant, so maybe it fits better under SUN-TAN.
+
+In the SUN-TAN category, there's a subcategory for eyes-lips-sensitive-areas. That seems perfect because the product is for lip protection, which is a sensitive area. So, the category path would be sun-tan/eyes-lips-sensitive-areas.
+
+Wait, but let me double-check. The product is a lip balm with SPF, so it's both a moisturizer and a sun protectant. However, the primary function here is sun protection, so SUN-TAN makes sense. The specific type would be under eyes-lips-sensitive-areas because lips are a sensitive area that needs protection.
+
+I don't think it fits under MAKEUP because it's not a cosmetic product; it's more of a skincare/sun protection product. It's also not under BODY or HAIR. HEALTH-CARE could be a possibility, but since it's specifically for sun protection, SUN-TAN is more accurate.
+
+So, the category path should be sun-tan/eyes-lips-sensitive-areas. That seems to cover both the sun protection aspect and the specific area it's intended for.
+</think>
+
+sun-tan/eyes-lips-sensitive-areas",deepseek-r1-distill-llama-70b,"{'prompt_tokens': 4110, 'completion_tokens': 499, 'total_tokens': 4609}",success,4.674315929412842,True,True,sun-tan/eyes-lips-sensitive-areas,"Babe-Fotoprotector Lip Protection SPF50 Invisible -Fotoprotector Lip Protection SPF50 Invisibleallows aprolonged protection and hydration of the lips, giving a transparent finish.   Water resistant an...",prompt_reason_04,deepseek-r1-distill-llama-70b,True,2025-08-07T09:05:32.001947,True,groq
+skin/seruns/global-anti-aging,"<think>
+Okay, I need to classify the product ""Rilastil-Intense C Gel Serum"" into one of the given categories. Let me start by understanding the product. It's a serum, specifically a gel-serum, designed to protect the skin against oxidizing aggressors like the sun, smoke, pollution, and physical activity. The key ingredients are hyaluronic acid and High Tech Vitamin C (15%), which combat oxidative stress. The benefits mentioned are hydration, making the skin light, elastic, soft, and beautiful. It has a fresh and fluid texture.
+
+First, I'll determine the main category. The product is clearly for the skin, so the main category is SKIN.
+
+Next, I need to find the appropriate subcategory. Looking at the SKIN categories, options include cleansers-tonners, dark spots, dehydration, essences-preparing-lotions, eye-care, facial-oils, first-signs-age, global-anti-aging, hairs-removal, lip-care, loss-firmness, makeup-removers, masks-exfoliators, moisturisers, neck-decollete-care, oiliness-acne-pores, redness, seruns, targeted-correction, etc.
+
+The product is a serum, which typically falls under seruns. So the subcategory is seruns.
+
+Now, looking at the specific type within seruns. The product is formulated to combat oxidative stress, which is related to anti-aging and protection. It's also moisturizing and rejuvenating. The SKIN/seruns subcategory has specific types like dark-spots, dehydration, first-signs-age, global-anti-aging, loss-firmness, oiliness-acne-pores, redness-rosacea, sensitive-intolerant-skin, etc.
+
+Given that it's a protective serum with Vitamin C and hyaluronic acid, it's likely targeting anti-aging and hydration. The most fitting specific type would be global-anti-aging, as it's meant to combat various signs of aging and environmental stressors.
+
+Putting it all together, the category path is skin/seruns/global-anti-aging.
+</think>
+
+skin/seruns/global-anti-aging",deepseek-r1-distill-llama-70b,"{'prompt_tokens': 4132, 'completion_tokens': 451, 'total_tokens': 4583}",success,2.12298321723938,False,True,skin/dark-spots/seruns,"Rilastil-Intense C Gel Serum-Intense C Gel Serum is a protective serum specially formulated for skin that is subject to oxidizing aggressors,such as the sun, smoke, pollution, and intense physical act...",prompt_reason_04,deepseek-r1-distill-llama-70b,True,2025-08-07T09:05:32.002989,True,groq
+health-care/eye-care,"<think>
+Okay, so I need to classify this product called Montana Eyewear-Blue Light Filter Glasses HBLF73A Turtle. Let me start by understanding what this product is. From the description, it's a pair of glasses with blue light filtering capabilities. They're designed to be lightweight and comfortable for everyday use. They come with diopter options, so they can be used by people with different vision needs. They're meant for both men and women and help protect the eyes from blue light emitted by digital devices like smartphones, computers, and tablets. The main purpose is to reduce digital eye fatigue and improve sleep by blocking blue light.
+
+Now, looking at the available categories, I need to figure out where this product fits. The categories are BODY, FRAGRANCE, HAIR, HEALTH-CARE, MAKEUP, MEN, MOM-BABY, SKIN, SUN-TAN, and SUPPLEMENTS-VITAMINS.
+
+First, I'll consider each main category:
+
+- BODY: This seems to be about body care products like moisturizers, deodorants, etc. Glasses don't fit here.
+- FRAGRANCE: This is about perfumes and related products. Not applicable.
+- HAIR: Products for hair care. Not relevant.
+- HEALTH-CARE: This includes a wide range of health-related products. Since the glasses are protective eyewear, this might be a possibility. They could fall under eye care or protective gear.
+- MAKEUP: This is about cosmetics. Glasses aren't makeup.
+- MEN: While there's a subcategory for men's accessories, the glasses are unisex, so it's not specific to men.
+- MOM-BABY: This is for baby and maternity products. Not relevant here.
+- SKIN: This is about skin care products. Glasses don't fit here.
+- SUN-TAN: This is about sun protection products like sunscreen, after-sun lotions, etc. While sunglasses are part of sun protection, these are specifically blue light filter glasses, not for UV protection.
+- SUPPLEMENTS-VITAMINS: These are ingestible products. Glasses don't fit here.
+
+So, the closest main category seems to be HEALTH-CARE. Now, looking at the subcategories under HEALTH-CARE, I see options like eye-care, but I need to check if there's a specific subcategory for eyewear or protective gear. The available subcategories under HEALTH-CARE include things like atopic-dermatitis, bones-joints, contact lenses, etc. There's no specific subcategory for eyewear or blue light glasses. However, there's a subcategory called ""eye-care"" under SKIN, but that's more about skin around the eyes, not eyewear.
+
+Wait, looking back, under HEALTH-CARE, there's ""contact-lenses"" and ""eye-care"" isn't explicitly listed, but maybe it's part of a broader category. Alternatively, perhaps ""eye-care"" is under SKIN, but that's more about skin products, not eyewear. So, maybe HEALTH-CARE is the best fit, but I don't see a specific subcategory for eyewear. However, the product is about eye protection, so perhaps it falls under a more general HEALTH-CARE category.
+
+Alternatively, maybe it's better to consider if there's a more specific category. Since the glasses are for eye protection from blue light, which is a health concern related to digital devices, they might fit under HEALTH-CARE. But looking at the subcategories, I don't see an exact match. The closest might be ""health-care/eye-care"", but I don't see that listed. Wait, checking the HEALTH-CARE subcategories again, I see ""health-care/oral-health"", ""health-care/lip-herpes"", etc., but nothing specific for eye protection.
+
+Wait, perhaps I missed it. Let me check again. The HEALTH-CARE subcategories include ""health-care/contact-lenses"" and ""health-care/oral-health"". There's no specific subcategory for eyewear or blue light glasses. So, maybe the best fit is the general HEALTH-CARE category without a subcategory, but the format requires category/subcategory/type. So, perhaps it's HEALTH-CARE/eye-care, but since that's not listed, maybe it's just HEALTH-CARE.
+
+Wait, looking back at the available categories, I see that under HEALTH-CARE, there's ""health-care/eye-care"" as a subcategory? Let me check the list again. No, I don't see ""eye-care"" under HEALTH-CARE. The subcategories under HEALTH-CARE include things like ""atopic-dermatitis/bath-shower"", ""bones-joints"", ""contact-lenses"", etc. So, perhaps the best fit is HEALTH-CARE without a subcategory, but the format requires three levels. Hmm, maybe I'm missing something.
+
+Wait",deepseek-r1-distill-llama-70b,"{'prompt_tokens': 4223, 'completion_tokens': 1000, 'total_tokens': 5223}",success,5.092405080795288,False,True,health-care/contact-lenses,"Montana Eyewear-Blue Light Filter Glasses HBLF73A Turtle -Lightweight, practical and very comfortable, perfect for everyday life!   Choose the diopter that best suits your vision!   Ideal for both her...",prompt_reason_04,deepseek-r1-distill-llama-70b,True,2025-08-07T09:05:32.005244,True,groq
+hair/anti-dandruff/preshampoo-head-scrub,"<think>
+Okay, so I need to classify this product called Lador-Tea Tree Scalp Clinic Hair Pack. Let me start by reading the product description carefully. It says it's a hair pack that removes dead skin cells and soothes the scalp. It has natural ingredients like Green Tea and Tea Tree Extract. It also mentions gentle acids for peeling, addressing dandruff, excess sebum, and itching. It strengthens hair roots, revitalizes the scalp, and improves blood circulation. It has Snail Mucus for cell regeneration and calming sensitive scalps. It also includes Collagen, Ceramide, and Menthol for a cooling sensation.
+
+First, I'll determine the main category. The product is for the hair and scalp, so the main category is likely HAIR.
+
+Next, looking at the subcategories under HAIR, I see options like anti-dandruff, damaged-hair, hair-loss, etc. Since the product is specifically for the scalp and addresses dandruff, I should consider the anti-dandruff subcategory.
+
+Now, for the specific type. The product is a hair pack, which is a type of treatment. In the HAIR category, under anti-dandruff, there's a subcategory for treatments like masks or specific care. But looking at the available options, I see hair/anti-dandruff/preshampoo-head-scrub, hair/anti-dandruff/seruns-leave-in, and hair/anti-dandruff/shampoo. However, this product is a hair pack, which is more like a treatment or mask. 
+
+Wait, in the HAIR category, there's a subcategory called hair-mask with various types. But since the product is specifically for the scalp and addresses dandruff, it might fit better under hair/anti-dandruff. However, the specific type isn't listed as a mask. Alternatively, maybe it's a hair-mask under the anti-dandruff section, but I don't see that exact path.
+
+Looking back, the product is a scalp treatment, so perhaps it's best classified under hair/anti-dandruff. But since it's a pack, which is a type of mask, maybe it should be under hair/hair-mask. However, the primary function is addressing dandruff, so the main subcategory should be anti-dandruff.
+
+Wait, the product is a hair pack, which is applied to the scalp, so it's more of a treatment. In the HAIR category, under anti-dandruff, the specific types include shampoo, serum, etc., but not a mask. However, in the hair-mask subcategory, there are options like dry-to-very-dry-hair, normal-hair, etc., but none specifically for dandruff. 
+
+Hmm, maybe I should consider the primary function. It's a scalp treatment for dandruff, so the best fit would be hair/anti-dandruff. Since it's a pack, which is a type of mask, but the specific type isn't listed under anti-dandruff. So perhaps the closest is hair/anti-dandruff/preshampoo-head-scrub, but that's more of a scrub. Alternatively, it could be under hair/hair-mask, but that's more general.
+
+Wait, the product is specifically for the scalp and dandruff, so the primary category is HAIR, subcategory anti-dandruff, and the type would be a specific-care product. Looking at the available options, under hair/anti-dandruff, there's no specific-care type listed, but in the BODY and HEALTH-CARE categories, there are specific-care subcategories for conditions like atopic dermatitis. However, since this is for hair, it should stay under HAIR.
+
+Alternatively, perhaps it's better to classify it under hair/hair-mask since it's a pack, but the primary function is for dandruff. So maybe the best fit is hair/anti-dandruff, but without a specific type, I might have to choose the closest. Wait, the available categories under HAIR/anti-dandruff include shampoo, serum, and preshampoo-head-scrub. Since this is a pack, which is a type of mask, perhaps it's better to go with hair/hair-mask, but then the subcategory would be more general.
+
+Wait, the product is specifically for dandruff and scalp treatment, so the primary category is HAIR, subcategory anti-dandruff, and the type would be a specific-care product. But looking at the available options, under HAIR/anti-dandruff, the types are shampoo, serum, and preshampoo-head-scrub. Since this is a pack, which is a treatment, perhaps the closest is hair/anti-dandruff/preshampoo-head-scrub, but that's a scrub, not a pack. Alternatively",deepseek-r1-distill-llama-70b,"{'prompt_tokens': 4160, 'completion_tokens': 1000, 'total_tokens': 5160}",success,4.517008066177368,False,True,hair/seruns-leave-in/sensitive-scalp,Lador-Tea Tree Scalp Clinic Hair Pack-Experience the soothing benefits of Tea Tree Scalp Clinic Hair Pack.Effectively removes dead skin cells and soothes the scalp!Formulated with natural ingredients ...,prompt_reason_04,deepseek-r1-distill-llama-70b,True,2025-08-07T09:05:32.007249,True,groq
+skin/loss-firmness/specific-moisturizers,"<think>
+Okay, I need to classify the Roc-Multi Correxion Firm + Lift Firming Cream into one of the given categories. Let me start by understanding the product. It's a firming cream designed to improve skin firmness and elasticity, targeting sagging skin and facial contours. It's meant for daily use and contains active ingredients like Roc THPE and Bugrane Extract to tighten and lift the skin.
+
+First, I'll determine the main category. The product is a skincare item, so it falls under either ""BODY"" or ""SKIN."" Since it's specifically for the face, ""SKIN"" seems more appropriate because ""BODY"" usually refers to body care products.
+
+Next, looking at the subcategories under ""SKIN,"" I see options like ""anti-ageing,"" ""moisturisers,"" ""firming-care,"" etc. The product is an anti-aging firming cream, so the subcategory should be related to anti-aging or firming. The subcategory ""firming-care"" exists under ""BODY,"" but under ""SKIN,"" the closest is ""loss-firmness"" or ""global-anti-aging.""
+
+Wait, under ""SKIN,"" there's ""loss-firmness"" which includes serums, specific moisturizers, etc. The product is a firming cream, so it's a moisturizer aimed at firming. Therefore, the subcategory would be ""loss-firmness"" and the specific type would be ""specific-moisturizers.""
+
+Putting it all together, the category path is skin/loss-firmness/specific-moisturizers.
+</think>
+
+skin/loss-firmness/specific-moisturizers",deepseek-r1-distill-llama-70b,"{'prompt_tokens': 4190, 'completion_tokens': 346, 'total_tokens': 4536}",success,1.9029169082641602,True,True,skin/loss-firmness/specific-moisturizers,Roc-Multi Correxion Firm + Lift Firming Cream-Restore facial firmness and redefine contours with Roc Multi Correxion Firm + Lift Anti-Sagging Firming Cream — clinically proven to combat sagging skin.L...,prompt_reason_04,deepseek-r1-distill-llama-70b,True,2025-08-07T09:05:32.010240,True,groq
+hair/damaged-hair/masks,"<think>
+Okay, so I need to classify this product into one of the given categories. Let me start by reading the product description carefully.
+
+The product is called Cotril K-Smooth Supreme Keratin Mask. It's described as a moisturizing treatment that restores and nourishes the hair. It helps detangle, fights frizz, and prolongs salon keratin results. The key benefits include deep nourishment, detangling, anti-frizz action, and it's designed to work with the K-Smooth shampoo for ongoing hair care. The active ingredients are keratin, coconut oil, and sugarcane extract, which restructure, soften, and protect the hair while enhancing shine and manageability. It's ideal for maintaining keratin-treated hair, helping to detangle, control frizz, and boost moisture.
+
+First, I'll determine the main category. The product is a hair mask, so it falls under the 'hair' category.
+
+Next, I'll look at the subcategories under 'hair'. There's 'hair-mask' as a subcategory, which seems appropriate since this is a mask. Under 'hair-mask', there are further subcategories like dry-to-very-dry-hair, normal-hair, oily-hair, straightening, and volume. 
+
+The product is a keratin mask aimed at restoring and nourishing hair, which suggests it's for damaged or treated hair. It's designed to help with frizz and manageability, which is common for curly or damaged hair. However, looking at the subcategories, I don't see one specifically for keratin-treated or damaged hair beyond 'damaged-hair' or 'dry-damaged-hair'. 
+
+Wait, under 'hair', there's a subcategory 'damaged-hair' and under that, 'masks'. So maybe 'hair/damaged-hair/masks' would be a fit. But I also see 'hair-mask' as a subcategory with specific types. The product is a mask, so 'hair-mask' is a direct subcategory. 
+
+Looking at the specific types under 'hair-mask', there's 'dry-to-very-dry-hair', 'normal-hair', 'oily-hair', 'straightening', and 'volume'. The product is for keratin-treated hair, which is often used for smoothing and managing frizz, so it might fall under 'straightening' or perhaps 'dry-to-very-dry-hair' if it's for dry hair. 
+
+However, the product description doesn't specify if it's for dry hair specifically. It's more about restoring and managing frizz, which is common in damaged or treated hair. Since 'damaged-hair' is a subcategory under 'hair', and 'masks' is a type under that, I think 'hair/damaged-hair/masks' would be the most accurate. 
+
+But wait, the 'hair-mask' subcategory has 'straightening' as a type. Since keratin treatments are often used to straighten hair, maybe 'hair-mask/straightening' is more appropriate. 
+
+Alternatively, considering the product is a mask, it might fit under 'hair-mask' with a specific type. But looking at the available categories, 'hair-mask' doesn't have a 'keratin' or 'damaged' specific type listed. The closest would be 'hair-mask/moisturizing-masks' under 'skin', but that's not applicable here. 
+
+Wait, no, 'hair-mask' is under 'hair', and the specific types are dry, normal, oily, straightening, and volume. Since the product is for keratin-treated hair, which is often used to straighten and smooth hair, 'straightening' seems like the best fit. 
+
+So, putting it all together, the category path would be 'hair/hair-mask/straightening'. But wait, looking back at the categories, under 'hair' there's 'hair-mask' as a subcategory, and under that, 'straightening' is a type. So the path would be 'hair/hair-mask/straightening'.
+
+Alternatively, since the product is specifically for damaged hair treated with keratin, maybe 'hair/damaged-hair/masks' is more precise. But I need to check the available categories again.
+
+Looking at the available categories under 'hair', I see 'hair/damaged-hair/masks' as an option. So that might be the better fit because it's specifically for damaged hair, which keratin treatments often target.
+
+But the product is a mask, so 'hair-mask' is a subcategory. Hmm, I'm a bit confused. Let me check the categories again.
+
+Under 'hair', the subcategories include 'hair-mask' and 'damaged-hair'. 'hair-mask' has types like dry, normal, etc., while 'damaged-hair' has 'm",deepseek-r1-distill-llama-70b,"{'prompt_tokens': 4251, 'completion_tokens': 1000, 'total_tokens': 5251}",success,4.370027780532837,False,True,hair/hair-mask/straightening,"Cotril-K-Smooth Supreme Keratin Mask-Restore and nourish with Cotril K-Smooth Supreme Keratin Mask. This moisturizing treatment disciplines, detangles, and fights frizz, helping to prolong salon kerat...",prompt_reason_04,deepseek-r1-distill-llama-70b,True,2025-08-07T09:05:32.012232,True,groq
+fragrance/bath,"<think>
+Okay, so I need to classify this product into one of the given categories. Let me start by understanding what the product is. The product is called Korloff-Écorce d'Argent Eau de Parfum. From the description, it's a niche fragrance, which means it's a type of perfume. The name itself includes ""Eau de Parfum,"" which is a common term for perfume. 
+
+Looking at the features, it's described as a woody, elegant scent with bergamot and other notes. It's inspired by a palace, so it's probably marketed as a luxury fragrance. The target area for this product would be the body, as perfumes are typically applied to the skin, usually on pulse points like wrists, neck, etc.
+
+Now, considering the main categories provided: BODY, FRAGRANCE, HAIR, HEALTH-CARE, MAKEUP, MEN, MOM-BABY, SKIN, SUN-TAN, SUPPLEMENTS-VITAMINS. Since this is a perfume, the most obvious category is FRAGRANCE. 
+
+Looking at the FRAGRANCE subcategories, there's fragrance, fragrance/bath, fragrance/deodorants, fragrance/fragranced-moisturizers, and fragrance/women. Since this is a perfume and not a bath product, deodorant, or moisturizer, the primary category would be fragrance. There's no specific mention of it being for women, so the most general subcategory under FRAGRANCE is just fragrance itself.
+
+I don't think it fits into any other category like BODY or SKIN because those are more about skincare or body care products, not fragrances. It's definitely not a makeup, hair, or healthcare product. So the best fit is FRAGRANCE without any subcategories since it's a general perfume.
+</think>
+
+fragrance",deepseek-r1-distill-llama-70b,"{'prompt_tokens': 4297, 'completion_tokens': 380, 'total_tokens': 4677}",success,2.314438819885254,False,True,fragrance/women,"Korloff-Écorce d'Argent Eau de Parfum-Discover Korloff Écorce d'Argent Eau de Parfum — a niche fragrance where woody elegance meets fresh bergamot, inspired by the grandeur of Saint Petersburg’s Peter...",prompt_reason_04,deepseek-r1-distill-llama-70b,True,2025-08-07T09:05:32.013227,True,groq
+skin/cleansers-tonners,"<think>
+Alright, I need to classify the product ""Tocobo-Vita Berry Pore Toner"" into one of the given categories. Let's break it down step by step.
+
+First, the product is a toner. Toners are typically used on the face as part of a skincare routine. They are meant to balance the skin's pH, tighten pores, and prepare the skin for further products. So, the main category is likely related to skin care.
+
+Looking at the available categories, the options are BODY, FRAGRANCE, HAIR, HEALTH-CARE, MAKEUP, MEN, MOM-BABY, SKIN, SUN-TAN, and SUPPLEMENTS-VITAMINS. Since this is a toner, it doesn't fit into BODY, FRAGRANCE, HAIR, MAKEUP, MEN, MOM-BABY, SUN-TAN, or SUPPLEMENTS-VITAMINS. HEALTH-CARE could be a possibility, but toners are more about beauty and skincare rather than healthcare.
+
+So, the main category should be SKIN. Now, looking at the subcategories under SKIN, there's ""cleansers-tonners"". That seems perfect because toners fall under cleansers and toners. 
+
+Next, I need to determine if there's a specific type. The product is a toner, so the specific type would be ""toners"". However, looking at the subcategories, under ""cleansers-tonners"", there are options like combination-to-oily-skin, dry-skin, etc., but no specific ""toner"" type. Wait, maybe I'm missing something. Let me check again.
+
+Wait, the subcategories under SKIN include ""cleansers-tonners"" with further subcategories like combination-to-oily-skin, dry-skin, etc. But the product is a toner, which is a specific type of cleanser-toner. However, in the provided categories, under SKIN/cleansers-tonners, the subcategories are more about skin types rather than the product type. So, perhaps the specific type isn't listed, and I should just go with ""cleansers-tonners"" as the subcategory without a specific type.
+
+But wait, the product is a toner, and in the examples, ""Nivea Daily Face Cream"" was classified under skin/moisturisers. So, maybe I should consider if there's a more specific subcategory. Alternatively, perhaps the product could fall under ""cleansers-tonners"" without a specific type.
+
+Wait, looking back, the product is a toner, so the category would be SKIN/cleansers-tonners. Since there's no specific type listed for toners, I think that's the most accurate classification. So, the category path would be skin/cleansers-tonners.
+
+But wait, in the example, ""Nivea Daily Face Cream"" was under skin/moisturisers. So, maybe I should check if there's a moisturiser category. However, this product is a toner, not a moisturiser. So, it's better to stick with cleansers-tonners.
+
+Therefore, the final category path is skin/cleansers-tonners.
+</think>
+
+skin/cleansers-tonners",deepseek-r1-distill-llama-70b,"{'prompt_tokens': 4189, 'completion_tokens': 668, 'total_tokens': 4857}",success,2.9438109397888184,False,True,skin/cleansers-tonners/combination-to-oily-skin,"Tocobo-Vita Berry Pore Toner-Ethically produced and Vegan-friendly, Vita Berry Pore Toner is formulated with 50,000ppm of berry water, which includes wild strawberry extract that is abundant in organi...",prompt_reason_04,deepseek-r1-distill-llama-70b,True,2025-08-07T09:05:32.015220,True,groq
+skin/cleansers-tonners/dry-skin,"<think>
+Okay, I need to classify the product ""Clinique Rinse Off Foaming Cleanser"" into one of the given categories. Let me start by understanding the product details.
+
+The product is a rinse-off foaming cleanser. It's indicated for skin type 2, which is dry to combination skin. It's a mousse that turns into a rich foam when in contact with water. It removes makeup and sunscreen, leaving the skin clean, fresh, and hydrated. It's recommended for everyday use.
+
+First, I'll determine the main category. The product is a cleanser, which is primarily used on the skin, so the main category is likely ""skin"".
+
+Next, looking at the subcategories under ""skin"", I see options like ""cleansers-tonners"", ""moisturisers"", ""masks-exfoliators"", etc. Since this is a cleanser, the subcategory should be ""cleansers-tonners"".
+
+Now, I need to check if there's a specific type under ""cleansers-tonners"". The options are for different skin types: combination-to-oily-skin, dry-skin, normal-skin, sensitive-skin. The product is for dry to combination skin, so the specific type would be ""dry-skin"" or ""combination-to-oily-skin"". Wait, the product is for dry to combination, so maybe ""dry-skin"" is more appropriate since it's leaning towards dryness.
+
+Putting it all together, the category path would be ""skin/cleansers-tonners/dry-skin"".
+</think>
+
+skin/cleansers-tonners/dry-skin",deepseek-r1-distill-llama-70b,"{'prompt_tokens': 4118, 'completion_tokens': 332, 'total_tokens': 4450}",success,1.7860586643218994,False,False,makeup/complexion/makeup-removers,Clinique-Rinse Off Foaming Cleanser -Rinse off foaming cleanser has the formula indicated for skin type 2 - dry the combination skin.   The combination todry skin will thank this product!    	 	It is ...,prompt_reason_04,deepseek-r1-distill-llama-70b,True,2025-08-07T09:05:32.016217,True,groq
+skin/dark-spots/seruns,"<think>
+Okay, so I need to classify this product called Sesderma Azelac Ru Depigmenting Ampoules. Let me start by understanding what this product is. From the description, it's an ampoule used to prevent and reduce hyperpigmentation. It has depigmenting, anti-inflammatory, and antioxidant properties. It uses nanotechnology to target melanocytes, which are the cells responsible for pigment production. It's effective for high phototypes, post-inflammatory hyperpigmentation, and melasma. The composition includes ingredients like azelaic acid, vitamin C, niacinamide, and others known for their skin-lightening and protective effects.
+
+First, I'll determine the main category. The product is clearly related to skin care because it's addressing hyperpigmentation and is applied topically. So the main category is likely SKIN.
+
+Next, looking at the subcategories under SKIN, I see options like dark-spots, dehydration, essences-preparing-lotions, seruns, etc. Since this product is specifically targeting hyperpigmentation and dark spots, the subcategory should be dark-spots.
+
+Now, for the specific type. The product is a serum or ampoule, which is a concentrated solution applied directly to the skin. In the SKIN category, under dark-spots, there's a subcategory for seruns. So the specific type would be seruns.
+
+Putting it all together, the category path should be skin/dark-spots/seruns.
+</think>
+
+skin/dark-spots/seruns",deepseek-r1-distill-llama-70b,"{'prompt_tokens': 4190, 'completion_tokens': 316, 'total_tokens': 4506}",success,1.7474992275238037,True,True,skin/dark-spots/seruns,"Sesderma-Azelac Ru Depigmenting Ampoules Ampoules-Azelac Ru depigmenting ampouleshelp prevent and reduce hyperpigmentation effectively.   Depigmenting action,  anti-inflammatory and antioxidant!   Tha...",prompt_reason_04,deepseek-r1-distill-llama-70b,True,2025-08-07T09:05:32.017215,True,groq

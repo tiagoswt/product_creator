@@ -1,0 +1,17 @@
+{
+  "strategy": "hybrid_balanced",
+  "confidence_threshold": 0.6,
+  "embedding_model": "text-embedding-3-large",
+  "llm_model": "openai/gpt-oss-120b",
+  "llm_fallback_models": [
+    "deepseek-r1-distill-llama-70b",
+    "llama-3.3-70b-versatile",
+    "llama-3.1-70b-versatile"
+  ],
+  "enable_caching": true,
+  "embedding_cost_per_1k": 0.00013,
+  "llm_cost_per_1k_tokens": 0.002,
+  "langsmith_enabled": true,
+  "langsmith_project": "reasoning-model-evaluation",
+  "save_timestamp": "2025-08-08T15:13:34.727322"
+}

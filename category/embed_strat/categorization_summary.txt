@@ -1,0 +1,14 @@
+EMBEDDING CATEGORIZATION EVALUATION SUMMARY
+==================================================
+
+Test samples: 160
+Categories: 138
+Failed predictions: 0
+
+Accuracy: 0.3688
+Macro F1-Score: 0.2569
+Weighted F1-Score: 0.3824
+Macro Precision: 0.2750
+Macro Recall: 0.2635
+Weighted Precision: 0.4541
+Weighted Recall: 0.3688

@@ -1,0 +1,3 @@
+Prompt,Exact_Accuracy,Partial_Accuracy,Success_Rate,Valid_Predictions,Errors,Fallbacks
+prompt_mandatory_output,0.0%,50.0%,100.0%,10,0,4
+prompt_reason_04,0.0%,40.0%,100.0%,10,0,8

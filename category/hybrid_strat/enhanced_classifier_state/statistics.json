@@ -1,0 +1,45 @@
+{
+  "hybrid": {
+    "total_classifications": 194,
+    "method_usage": {
+      "embedding": 46,
+      "llm": 0,
+      "hybrid": 149
+    },
+    "total_cost": 1.256195620000001,
+    "total_time": 388.31408429145813,
+    "strategy_triggers": 149,
+    "accuracy_stats": {
+      "correct": 88,
+      "total": 194
+    },
+    "langsmith_traces": 194,
+    "running_accuracy": 0.4536082474226804
+  },
+  "embedding": {
+    "embeddings_created": 0,
+    "cache_hits": 196,
+    "cache_rate": "100.0%",
+    "searches_performed": 196,
+    "total_cost": 0.0,
+    "categories_indexed": 362,
+    "langsmith_traces": 0
+  },
+  "llm": {
+    "llm_requests": 50,
+    "cache_hits": 99,
+    "cache_rate": "66.4%",
+    "total_tokens": 208720,
+    "total_cost": 0.41744000000000003,
+    "model_usage": {
+      "openai/gpt-oss-120b": 50
+    },
+    "errors": 0,
+    "langsmith_traces": 50
+  },
+  "strategy": "hybrid_balanced",
+  "confidence_threshold": 0.6,
+  "langsmith_enabled": true,
+  "langsmith_project": "reasoning-model-evaluation",
+  "total_langsmith_traces": 244
+}

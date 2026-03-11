@@ -1,0 +1,6 @@
+Prompt,Exact_Accuracy,Partial_Accuracy,Valid_Predictions,Errors
+prompt_reason_04,38.3%,83.0%,47,3
+prompt_HCP,38.5%,87.2%,39,11
+prompt_HCP_02,38.6%,86.4%,44,6
+prompt_reason_02,38.6%,90.9%,44,6
+prompt_01,48.9%,91.1%,45,5

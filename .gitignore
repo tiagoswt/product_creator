@@ -5,6 +5,12 @@
 .env
 .env.local
 
+# Virtual environment
+.venv/
+
+# Windows artifacts
+nul
+
 # Python cache
 __pycache__/
 *.py[cod]
@@ -40,7 +46,3 @@ Thumbs.db
 api_cache.json
 config_and_stats_*.json
 **/*_config.json
-
-# Development folders
-**/logistics/
-**/category/

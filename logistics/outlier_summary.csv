@@ -1,0 +1,2 @@
+Total_Samples,Total_Outliers,Outlier_Percentage,Method,Threshold,weight_Outliers,weight_Outlier_Percentage,width_Outliers,width_Outlier_Percentage,height_Outliers,height_Outlier_Percentage,depth_Outliers,depth_Outlier_Percentage
+4013,484,12.060802392225268,std_dev,2,125,3.114876650884625,178,4.435584350859706,243,6.055320209319711,192,4.784450535758784

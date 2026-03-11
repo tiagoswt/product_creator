@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "classifier_type": "EnhancedHybridBeautyClassifier",
+  "langsmith_integration": "fixed",
+  "save_date": "2025-08-08T15:13:34.847178",
+  "components": {
+    "config": "config.json",
+    "embedding_cache": "embedding_classifier/embeddings_cache.pkl",
+    "faiss_index": "embedding_classifier/faiss_index.bin",
+    "llm_cache": "llm_classifier/llm_cache.json",
+    "statistics": "statistics.json"
+  },
+  "requirements": [
+    "openai",
+    "groq",
+    "faiss-cpu",
+    "langsmith",
+    "numpy",
+    "pandas",
+    "scikit-learn"
+  ],
+  "performance": {
+    "total_classifications": 194,
+    "running_accuracy": 0.4536082474226804,
+    "embedding_categories": 362,
+    "total_cost": 1.256195620000001
+  }
+}

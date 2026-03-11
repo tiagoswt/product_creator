@@ -1,0 +1,2 @@
+Prompt,Exact_Accuracy,Partial_Accuracy,Valid_Predictions,Errors
+prompt_CoT,36.8%,89.5%,19,1

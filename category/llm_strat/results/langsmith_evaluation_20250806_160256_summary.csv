@@ -1,0 +1,4 @@
+Prompt,Exact_Accuracy,Partial_Accuracy,Valid_Predictions,Errors
+prompt_reason_02,33.3%,66.7%,3,7
+prompt_reasoning_classification,0.0%,75.0%,4,6
+prompt_CoT,0.0%,66.7%,6,4
