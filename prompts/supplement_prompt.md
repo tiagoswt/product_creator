@@ -13,6 +13,7 @@ Root Level Fields (Marketing Content):
     UrlPT: SEO URL slug from TRANSLATED product_title_PT WITHOUT size/quantity WITH brand (e.g., "solgar-capsulas-oleo-peixe-omega-3");
     brand: Product brand name;
     ModelName: always show "deo";
+    Ingredients: Array of INCI ingredients, all the letter should be in UPPERCASE and the INCI ingredients should be separaated by a comma "," like "AQUA/WATER/EAU, GLYCERIN, SQUALANE, ASCORBYL TETRAISOPALMITATE";
     CategoryId:;
     DescriptionEN: SEO-optimized marketing description in HTML format (MANDATORY STRUCTURE - follow exactly):
 
@@ -113,6 +114,7 @@ Respond ONLY with valid JSON in this exact structure:
   "HowToPT": "",
   "HowtoType":"5",
   "ModelName":"deo",
+  "Ingredients":"",
   "CategoryId": 1,
   "Subtypes": [{
       "EAN": "",

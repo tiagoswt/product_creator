@@ -11,6 +11,7 @@ UrlEN: SEO URL slug from TitleEN WITHOUT size/quantity WITH brand (e.g., "lancom
 UrlPT: SEO URL slug from TRANSLATED TitlePT WITHOUT size/quantity WITH brand (e.g., "lancome-eau-de-parfum-vida-bela");
 brand: Product brand name;
 ModelName: always show "deo";
+Ingredients: Array of INCI ingredients, all the letter should be in UPPERCASE and the INCI ingredients should be separaated by a comma "," like "AQUA/WATER/EAU, GLYCERIN, SQUALANE, ASCORBYL TETRAISOPALMITATE";
 CategoryId: Product category identifier;
 DescriptionEN: SEO-optimized marketing description in HTML format (MANDATORY STRUCTURE - follow exactly):
     Opening Meta Description (2-3 sentences):
@@ -127,6 +128,7 @@ json{
   "HowToPT": "",
   "HowtoType": "1",
   "ModelName": "",
+  "Ingredients":"",
   "CategoryId": 1,
   "Subtypes": [{
       "EAN": "",
