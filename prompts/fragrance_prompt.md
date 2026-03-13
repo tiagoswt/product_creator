@@ -11,7 +11,7 @@ UrlEN: SEO URL slug from TitleEN WITHOUT size/quantity WITH brand (e.g., "lancom
 UrlPT: SEO URL slug from TRANSLATED TitlePT WITHOUT size/quantity WITH brand (e.g., "lancome-eau-de-parfum-vida-bela");
 brand: Product brand name;
 ModelName: always show "deo";
-Ingredients: Array of INCI ingredients, all the letter should be in UPPERCASE and the INCI ingredients should be separaated by a comma "," like "AQUA/WATER/EAU, GLYCERIN, SQUALANE, ASCORBYL TETRAISOPALMITATE";
+Ingredients: CRITICAL - Must be a single string of INCI ingredients. ALL letters MUST be in UPPERCASE. Ingredients MUST be separated by a comma and a space ", " like "AQUA/WATER/EAU, GLYCERIN, SQUALANE, ASCORBYL TETRAISOPALMITATE". Never use lowercase. Never return an array. Never use semicolons or other separators;
 CategoryId: Product category identifier;
 DescriptionEN: SEO-optimized marketing description in HTML format (MANDATORY STRUCTURE - follow exactly):
     Opening Meta Description (2-3 sentences):
@@ -163,6 +163,7 @@ CRITICAL: The perfume story section must be exactly 100-120 words - count each w
 CRITICAL: Never include size/quantity information in product titles or URLs
 CRITICAL: Portuguese fields must be COMPLETELY TRANSLATED to European Portuguese of Portugal - translate ALL words except brand names
 CRITICAL: DO NOT include headings like "Catchphrase:" or "Tagline:" - write the catchphrase directly in blockquote tags
+CRITICAL: Ingredients field must be a single string with ALL letters in UPPERCASE, separated by ", " (comma + space). Example: "AQUA/WATER/EAU, GLYCERIN, SQUALANE". Never use lowercase letters in Ingredients. Never return Ingredients as an array.
 For olfactory notes, if provided in separate lists (Top/Heart/Base), integrate them naturally into the bullet points under "Olfactory Features"
 
 Word Count Validation

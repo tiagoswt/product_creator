@@ -13,7 +13,7 @@ Root Level Fields (Marketing Content):
     UrlPT: SEO URL slug from TRANSLATED product_title_PT WITHOUT size/quantity  WITH brand (e.g., "cerave-balsamo-hidratante-labios-volumizador");
     brand: Product brand name;
     ModelName: always show "deo";
-    Ingredients: Array of INCI ingredients, all the letter should be in UPPERCASE and the INCI ingredients should be separaated by a comma "," like "AQUA/WATER/EAU, GLYCERIN, SQUALANE, ASCORBYL TETRAISOPALMITATE";
+    Ingredients: CRITICAL - Must be a single string of INCI ingredients. ALL letters MUST be in UPPERCASE. Ingredients MUST be separated by a comma and a space ", " like "AQUA/WATER/EAU, GLYCERIN, SQUALANE, ASCORBYL TETRAISOPALMITATE". Never use lowercase. Never return an array. Never use semicolons or other separators;
     CategoryId:;
     DescriptionEN: SEO-optimized marketing description in HTML format (MANDATORY STRUCTURE - follow exactly):
 
@@ -147,5 +147,6 @@ Maintain SEO best practices
 CRITICAL: The closing pitch section must be exactly 100-120 words - count each word carefully before finalizing
 CRITICAL: Never include size/quantity information in product titles or URLs - this information belongs only in itemCapacity and itemCapacityUnits
 CRITICAL: Portuguese fields must be COMPLETELY TRANSLATED - translate ALL words to European Portuguese of Portugal except brand names
+CRITICAL: Ingredients field must be a single string with ALL letters in UPPERCASE, separated by ", " (comma + space). Example: "AQUA/WATER/EAU, GLYCERIN, SQUALANE". Never use lowercase letters in Ingredients. Never return Ingredients as an array.
 Word Count Validation
 Before completing your response, verify that the closing pitch section contains between 100-120 words. If it's outside this range, revise it to meet the requirement. Word count is a strict requirement, not a guideline.
