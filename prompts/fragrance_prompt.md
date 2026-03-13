@@ -104,10 +104,10 @@ VariantValue: Value of variant (e.g., "Eau de Parfum", "50ml", "Limited Edition"
 HexColor: Hex color code if product has color variants (perfume bottle/juice color);
 SecondVariantType: Second variant type if applicable;
 SecondVariant: Second variant value if applicable;
-Width: Product width in cm (numeric, e.g., 6.5, or 0 if not available);
-Height: Product height in cm (numeric, e.g., 12.0, or 0 if not available);
-Depth: Product depth in cm (numeric, e.g., 4.5, or 0 if not available);
-Weight: Product weight in grams (numeric, e.g., 125, ALWAYS 0 if not available);
+Width: Product width in cm (numeric only, e.g., 6.5). If not explicitly stated, estimate a realistic value based on the product type, format, and size descriptors;
+Height: Product height in cm (numeric only, e.g., 12.0). If not explicitly stated, estimate a realistic value based on the product type, format, and size descriptors;
+Depth: Product depth in cm (numeric only, e.g., 4.5). If not explicitly stated, estimate a realistic value based on the product type, format, and size descriptors;
+Weight: Product weight in grams (numeric only, e.g., 125). If not explicitly stated, estimate a realistic value based on the product type, volume, and packaging;
 priceSale: Selling price (numeric, e.g., 89.99, ALWAYS 0 if not available);
 priceRecommended: Recommended retail price (numeric, e.g., 99.99, ALWAYS 0 if not available);
 supplierPrice: Supplier cost price (numeric, always less than priceSale, ALWAYS 0 if not available);
