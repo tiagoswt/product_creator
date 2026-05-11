@@ -80,9 +80,9 @@ Subtypes Array (Technical Data):
     HexColor: Hex color code if product has color variants;
     SecondVariantType: Second variant type if applicable;
     SecondVariant: Second variant value if applicable;
-    Width: Product width in cm (numeric only, e.g., 15.5). If not explicitly stated, estimate a realistic value based on the product type, format, and size descriptors;
-    Height: Product height in cm (numeric only, e.g., 10.2). If not explicitly stated, estimate a realistic value based on the product type, format, and size descriptors;
-    Depth: Product depth in cm (numeric only, e.g., 3.0). If not explicitly stated, estimate a realistic value based on the product type, format, and size descriptors;
+    Width: Product width in cm (whole number integer only, no decimals, e.g., 16). If not explicitly stated, estimate a realistic value based on the product type, format, and size descriptors;
+    Height: Product height in cm (whole number integer only, no decimals, e.g., 10). If not explicitly stated, estimate a realistic value based on the product type, format, and size descriptors;
+    Depth: Product depth in cm (whole number integer only, no decimals, e.g., 3). If not explicitly stated, estimate a realistic value based on the product type, format, and size descriptors;
     Weight: Product weight in grams (numeric only, e.g., 125). If not explicitly stated, estimate a realistic value based on the product type, volume, and packaging;
     priceSale: Selling price (numeric without quotes, e.g., 29.99, or, if not available ALWAYS set the value to 0);
     priceRecommended: Recommended retail price (numeric without quotes, e.g., 39.99, or, if not available ALWAYS set the value to 0);
